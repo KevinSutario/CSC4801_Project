@@ -1,0 +1,22 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+data/
+.env
+*.sqlite3
+
+# Claude Code personal settings (may contain tokens)
+.claude/settings.local.json
+
+# Keystone
+instance/
+tests/repro/
+reviews/*/repro/
+.ruff_cache/
+
+# API keys and model-provider configs (contain secrets)
+litellm.yaml
+GLM.md
+apis/

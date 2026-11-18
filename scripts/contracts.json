@@ -1,0 +1,324 @@
+{
+  "_comment": "Machine-readable copy of docs/plan/07-CONTRACTS.md. Checked by scripts/check_contracts.py for every task that is MERGED in docs/state/STATUS.md, plus the task of the current task/<id> branch. Change only through a contract change request.",
+  "T01": {
+    "names": [
+      "app:create_app",
+      "app.config:Config",
+      "app.db:get_db",
+      "app.db:close_db",
+      "app.db:init_db",
+      "app.db:transaction",
+      "app.db:now_iso",
+      "app.errors:ServiceError",
+      "app.errors:ValidationError",
+      "app.errors:NotFound",
+      "app.errors:Forbidden",
+      "app.errors:Conflict",
+      "app.errors:init_app",
+      "app.skills:normalise_skill",
+      "app.skills:parse_skill_list",
+      "app.skills:get_or_create_skill_ids"
+    ],
+    "endpoints": []
+  },
+  "T02": {
+    "names": [
+      "app.security:init_app",
+      "app.security:login_required",
+      "app.security:role_required",
+      "app.security:csrf_token",
+      "app.security:rotate_csrf",
+      "app.security:is_safe_next",
+      "app.security:login_key",
+      "app.security:is_login_blocked",
+      "app.security:record_failed_login",
+      "app.security:reset_login_failures",
+      "app.audit:log_event",
+      "app.audit:list_events",
+      "app.audit:ACTIONS"
+    ],
+    "endpoints": []
+  },
+  "T03": {
+    "names": [],
+    "endpoints": [
+      [
+        "core.index",
+        "GET",
+        "/"
+      ]
+    ]
+  },
+  "T04": {
+    "names": [],
+    "endpoints": []
+  },
+  "T05": {
+    "names": [
+      "app.auth.service:register",
+      "app.auth.service:authenticate",
+      "app.auth.service:get_user"
+    ],
+    "endpoints": [
+      [
+        "auth.register",
+        "GET POST",
+        "/auth/register"
+      ],
+      [
+        "auth.login",
+        "GET POST",
+        "/auth/login"
+      ],
+      [
+        "auth.logout",
+        "POST",
+        "/auth/logout"
+      ]
+    ]
+  },
+  "T06": {
+    "names": [],
+    "endpoints": []
+  },
+  "T07": {
+    "names": [
+      "app.candidates.profile_service:get_profile",
+      "app.candidates.profile_service:save_profile"
+    ],
+    "endpoints": [
+      [
+        "candidates.today",
+        "GET",
+        "/candidate/"
+      ],
+      [
+        "candidates.profile",
+        "GET POST",
+        "/candidate/profile"
+      ]
+    ]
+  },
+  "T08": {
+    "names": [
+      "app.candidates.resume_service:save_resume",
+      "app.candidates.resume_service:list_resumes",
+      "app.candidates.resume_service:delete_resume",
+      "app.candidates.resume_service:can_view_resume",
+      "app.candidates.resume_service:get_resume_for_download"
+    ],
+    "endpoints": [
+      [
+        "candidates.resume",
+        "GET POST",
+        "/candidate/resume"
+      ],
+      [
+        "candidates.resume_delete",
+        "POST",
+        "/candidate/resume/<int:resume_id>/delete"
+      ],
+      [
+        "candidates.resume_download",
+        "GET",
+        "/resumes/<int:resume_id>"
+      ]
+    ]
+  },
+  "T09": {
+    "names": [
+      "app.employers.service:get_company",
+      "app.employers.service:get_company_by_id",
+      "app.employers.service:save_company"
+    ],
+    "endpoints": [
+      [
+        "employers.home",
+        "GET",
+        "/employer/"
+      ],
+      [
+        "employers.company",
+        "GET POST",
+        "/employer/company"
+      ]
+    ]
+  },
+  "T10": {
+    "names": [
+      "app.jobs.service:create_job",
+      "app.jobs.service:update_job",
+      "app.jobs.service:delete_job",
+      "app.jobs.service:get_owned_job",
+      "app.jobs.service:get_job",
+      "app.jobs.service:list_jobs_for_employer",
+      "app.jobs.service:list_open_jobs",
+      "app.jobs.service:EMPLOYMENT_TYPES"
+    ],
+    "endpoints": [
+      [
+        "jobs.my_jobs",
+        "GET",
+        "/employer/jobs"
+      ],
+      [
+        "jobs.new",
+        "GET POST",
+        "/employer/jobs/new"
+      ],
+      [
+        "jobs.edit",
+        "GET POST",
+        "/employer/jobs/<int:job_id>/edit"
+      ],
+      [
+        "jobs.confirm_delete",
+        "GET",
+        "/employer/jobs/<int:job_id>/delete"
+      ],
+      [
+        "jobs.delete",
+        "POST",
+        "/employer/jobs/<int:job_id>/delete"
+      ],
+      [
+        "jobs.detail",
+        "GET",
+        "/jobs/<int:job_id>"
+      ]
+    ]
+  },
+  "T11": {
+    "names": [
+      "app.matching.engine:score",
+      "app.matching.engine:rank"
+    ],
+    "endpoints": []
+  },
+  "T12": {
+    "names": [
+      "app.timeutil:validate_tz",
+      "app.timeutil:local_to_utc",
+      "app.timeutil:utc_to_local",
+      "app.timeutil:format_local",
+      "app.timeutil:parse_iso",
+      "app.timeutil:COMMON_TIMEZONES",
+      "app.scheduling.slots:create_slot",
+      "app.scheduling.slots:delete_slot",
+      "app.scheduling.slots:list_slots_for_job"
+    ],
+    "endpoints": [
+      [
+        "scheduling.slots",
+        "GET POST",
+        "/employer/jobs/<int:job_id>/slots"
+      ],
+      [
+        "scheduling.delete_slot",
+        "POST",
+        "/employer/slots/<int:slot_id>/delete"
+      ]
+    ]
+  },
+  "T13": {
+    "names": [
+      "app.matching.service:recommend_for",
+      "app.matching.service:score_candidate_for_job"
+    ],
+    "endpoints": [
+      [
+        "matching.recommendations",
+        "GET",
+        "/candidate/recommendations"
+      ]
+    ]
+  },
+  "T14": {
+    "names": [
+      "app.applications.statuses:STATUSES",
+      "app.applications.statuses:TRANSITIONS",
+      "app.applications.statuses:LABELS",
+      "app.applications.service:apply",
+      "app.applications.service:list_for_candidate",
+      "app.applications.service:get_own_application"
+    ],
+    "endpoints": [
+      [
+        "applications.confirm",
+        "GET",
+        "/jobs/<int:job_id>/apply"
+      ],
+      [
+        "applications.submit",
+        "POST",
+        "/jobs/<int:job_id>/apply"
+      ],
+      [
+        "applications.mine",
+        "GET",
+        "/candidate/applications"
+      ]
+    ]
+  },
+  "T15": {
+    "names": [
+      "app.applications.review_service:list_applicants",
+      "app.applications.review_service:set_status"
+    ],
+    "endpoints": [
+      [
+        "applications.applicants",
+        "GET",
+        "/employer/jobs/<int:job_id>/applicants"
+      ],
+      [
+        "applications.confirm_status",
+        "GET",
+        "/employer/applications/<int:application_id>/status"
+      ],
+      [
+        "applications.set_status",
+        "POST",
+        "/employer/applications/<int:application_id>/status"
+      ]
+    ]
+  },
+  "T16": {
+    "names": [
+      "app.scheduling.booking:is_eligible",
+      "app.scheduling.booking:list_bookable_slots",
+      "app.scheduling.booking:book_slot"
+    ],
+    "endpoints": [
+      [
+        "scheduling.application_detail",
+        "GET",
+        "/candidate/applications/<int:application_id>"
+      ],
+      [
+        "scheduling.confirm_booking",
+        "GET",
+        "/candidate/applications/<int:application_id>/book/<int:slot_id>"
+      ],
+      [
+        "scheduling.book",
+        "POST",
+        "/candidate/applications/<int:application_id>/book/<int:slot_id>"
+      ]
+    ]
+  },
+  "T17": {
+    "names": [],
+    "endpoints": []
+  },
+  "T18": {
+    "names": [],
+    "endpoints": [
+      [
+        "activity.list",
+        "GET",
+        "/activity"
+      ]
+    ]
+  }
+}
