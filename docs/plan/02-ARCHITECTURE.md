@@ -105,7 +105,6 @@ The resume is raw text, one per candidate, owner-only. No file is ever written t
 company form -> employers.service.save_company -> upsert companies (one per employer)
 job form -> jobs.service.create_job / update_job -> validate -> INSERT jobs + job_skills
 delete POST -> jobs.service.delete_job -> ownership -> 409 if any application (D12)
-stop/resume POST -> jobs.service.set_job_accepting -> ownership -> set accepting_applications (D18)
 ```
 
 ### Recommendations (FP-CAN-2, FP-MATCH-1)

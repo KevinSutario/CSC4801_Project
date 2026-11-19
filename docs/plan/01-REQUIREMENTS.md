@@ -120,7 +120,7 @@ Open questions, answered:
 | ID | What the template says | Status | Task | Tests |
 |---|---|---|---|---|
 | FP-EMP-1 | Company profile | READY | T09 | `test_emp_company.py::test_fp_emp_1_company_profile` |
-| FP-EMP-2 | Job validation and deletion | READY (D12: delete with dependants 409, 403 for another employer, empty skills allowed; D18: stop/resume accepting applications) | T10 | `test_emp_jobs.py::test_fp_emp_2_job_validation_and_deletion` |
+| FP-EMP-2 | Job validation and deletion | READY (D12: delete with dependants 409, 403 for another employer, empty skills allowed) | T10 | `test_emp_jobs.py::test_fp_emp_2_job_validation_and_deletion` |
 | FP-EMP-3 | Applicant fields, order, status and role | READY (D11 statuses; D15 applicant tie-breakers) | T15 | `test_emp_applicants.py::test_fp_emp_3_applicant_fields_order_status_and_role` |
 
 Rule text (brief section "4. Employer workflow"):

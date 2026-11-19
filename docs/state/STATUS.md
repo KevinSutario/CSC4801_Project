@@ -54,5 +54,5 @@ Nothing. CC01 is merged, so Phase 1 can start: P3 takes T01 first (the rest of P
 
 ## Waiting on Kevin
 - Nothing. 2026-11-19: D16 (display name editable) confirmed; D17 third seed job confirmed; D18
-  revised per Kevin — jobs can stop accepting applications (new `accepting_applications` flag,
-  employer toggles via a confirm action, apply to a stopped job is 409). All applied.
+  "stop/resume accepting applications" deferred (outside brief; descoped for the 1-week timeline) —
+  jobs are plain, no status flag. Scope otherwise unchanged from the brief.

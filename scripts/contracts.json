@@ -144,7 +144,6 @@
       "app.jobs.service:update_job",
       "app.jobs.service:delete_job",
       "app.jobs.service:count_dependants",
-      "app.jobs.service:set_job_accepting",
       "app.jobs.service:get_owned_job",
       "app.jobs.service:get_job",
       "app.jobs.service:list_jobs_for_employer",
@@ -176,16 +175,6 @@
         "jobs.delete",
         "POST",
         "/employer/jobs/<int:job_id>/delete"
-      ],
-      [
-        "jobs.confirm_accepting",
-        "GET",
-        "/employer/jobs/<int:job_id>/accepting"
-      ],
-      [
-        "jobs.set_accepting",
-        "POST",
-        "/employer/jobs/<int:job_id>/accepting"
       ],
       [
         "jobs.detail",
