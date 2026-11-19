@@ -115,3 +115,18 @@ An agent may not change these. If one looks wrong, stop and report.
 - Also: dev moved under T-BRIEF only by orchestrator state commits (docs/state, reviews, CC01 card),
   not by another agent's work, so no merge review (trigger B) was run for it. The same rule applies
   to later tasks whose only dev drift is orchestrator state commits.
+
+## D20: Process slimmed for a 3-person team (2026-11-19)
+- Chosen by Kevin: the engineering process was too heavy for three real people. Kept the cheap,
+  high-value guards; dropped the swarm-era ceremony.
+- **Kept**: one branch per task, non-overlapping Owns + `check_scope.py`, `check.py` gate, Phase 1
+  serial + shared-file freeze (D4), contracts frozen, test-first for logic (matching/scheduling/auth).
+- **Dropped/changed**: three-reviewers-plus-judge → one non-author peer review, light or careful by
+  card type (`10-REVIEW-PROTOCOL.md`); `int/Txx` branch and separate merge review → merge straight
+  onto `dev`; six-state machine → TODO/DOING/MERGED/BLOCKED; JOURNAL.md and BUGS.md retired (git log +
+  STATUS cover them; a bug is a new Bxx card); worktrees now optional.
+- **Roles**: three lane owners (P1/P2/P3 in `docs/state/DIVISION.md`); P2 is integration lead (sole
+  merger of `dev`, sole writer of `docs/state/*`). Agents are optional helpers, not teammates.
+- **Files changed**: `CLAUDE.md`, `docs/plan/09-AGENT-WORKFLOW.md`, `docs/plan/10-REVIEW-PROTOCOL.md`,
+  `docs/state/STATUS.md`. Old versions remain in git history.
+- Reversible: revert this commit to restore the full protocol.

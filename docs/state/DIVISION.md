@@ -1,9 +1,9 @@
 # Division of labour — three people
 
-Three owners, each running their own Claude session (orchestrator + agents) for their lane.
-One of them (**P2**) is also the **integration lead**: the only one who merges to `dev` and writes
-shared state. Business rules still come only from `docs/BRIEF.md`; the file-ownership and workflow
-rules in `CLAUDE.md` and `docs/plan/09-AGENT-WORKFLOW.md` still apply unchanged.
+Three owners, each building their own lane (by hand or with any AI assistant — Claude, Cursor,
+Copilot). One of them (**P2**) is also the **integration lead**: the only one who merges to `dev` and
+writes shared state. Business rules still come only from `docs/BRIEF.md`; the file-ownership and
+workflow rules in `AGENTS.md` and `docs/plan/09-AGENT-WORKFLOW.md` still apply unchanged.
 
 ## The three people
 
@@ -64,7 +64,7 @@ with `python scripts/check_scope.py --overlap <ids>`:
 - Batch 1: **T07 (P1)**, **T09 (P2)**, **T12 (P3)** — no shared files.
 - Batch 2: **T08 (P1)**, **T10 (P2)**, **T11 (P3)** — no shared files.
 
-Each person dispatches their own card in their own worktree and runs the gate before handing off.
+Each person builds their own card on their own `task/Txx` branch and runs the gate before handing off.
 
 **Phase 3 — joining the lanes (max 2 at once).** These cards cross lanes, so coordinate ordering:
 
@@ -78,17 +78,16 @@ becomes a `Bxx` bug card fixed by the owner of that file.
 
 **Phase 4 — delivery.** T19 (P3) and T20 (P2) run together, then T21 (P1, the docs) after both.
 
-**Phase 5 — hardening.** T22 is review agents only. All three act as reviewers across each other's
-areas; P2 (integration lead) runs the judge and opens `Bxx` cards for confirmed bugs.
+**Phase 5 — hardening.** T22. All three act as reviewers across each other's areas; P2 (integration
+lead) confirms each finding and opens a `Bxx` card for every confirmed bug.
 
 ## Integration lead (P2) — the shared duties
 
-Because Claude subagents can't spawn other subagents, each person is an orchestrator for their own
-lane. But `dev` and shared state must have **one** writer, so P2 holds these:
+Everyone owns their own lane, but `dev` and shared state must have **one** writer, so P2 holds these:
 
-- Owns `dev`. Merges each reviewed task branch with `git merge --no-ff`, runs `python scripts/check.py`
-  after every merge, and runs the merge review (trigger B) whenever `dev` moved since a task started.
-- Sole writer of `docs/state/*` (STATUS, JOURNAL, DECISIONS, BUGS) and `reviews/*`.
+- Owns `dev`. Merges each reviewed task branch straight onto `dev` with `git merge --no-ff` and runs
+  `python scripts/check.py` after every merge. No `int/` branch, no separate merge review.
+- Sole writer of `docs/state/*` (STATUS, DECISIONS) and `reviews/*`.
 - Runs the phase gates and tags (`phase-1` … `release-1`).
 - Handles contract-change cards (CCxx), including the current CC01.
 
@@ -97,11 +96,11 @@ themselves, then hand the branch to P2 for review + merge. They never write `doc
 
 ## Hand-off checklist (every person, every card)
 
-1. `git worktree add ../ks-Txx -b task/Txx dev` and work only there.
+1. `git switch -c task/Txx dev` and work on that branch (a worktree is optional).
 2. Change only files in the card's **Owns** list. `python scripts/check_scope.py Txx` must print OK.
-3. Write the failing test first for any logic, then the code (CLAUDE.md rule 10).
+3. Write the failing test first for any logic, then the code (AGENTS.md rule 9).
 4. `python scripts/check.py` must print CHECK PASSED — paste the output in the hand-off.
-5. Hand the branch + the CLAUDE.md reply block to P2. Do not merge yourself.
+5. Hand the branch + the AGENTS.md reply block to a reviewer, then P2 merges. Do not merge yourself.
 
 ## Open coordination notes
 

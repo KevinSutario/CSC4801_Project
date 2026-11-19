@@ -1,8 +1,10 @@
 # Status
 
-The orchestrator updates this file. It is the orchestrator's memory between sessions.
-States: READY, BLOCKED, RUNNING, CHECKED, REVIEWED, MERGED, DONE.
-`scripts/check_contracts.py` reads the State column, so keep the table format.
+P2 (integration lead) updates this file. It is the team's shared memory.
+States (slimmed 2026-11-19): **TODO**, **DOING**, **MERGED**, **BLOCKED**. (Old rows may still read
+READY/RUNNING — treat READY as TODO, RUNNING as DOING.)
+`scripts/check_contracts.py` reads the State column and keys off the literal **MERGED**, so keep that
+word exact and keep the table format.
 
 Current phase: **1** · Brief: **present** (docs/BRIEF.md holds the full course brief)
 

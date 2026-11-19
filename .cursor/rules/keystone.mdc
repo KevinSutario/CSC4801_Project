@@ -1,0 +1,19 @@
+---
+description: Keystone project rules (points to AGENTS.md)
+alwaysApply: true
+---
+
+The canonical, tool-neutral project rules live in `AGENTS.md` at the repo root. Read it before
+editing. Do not duplicate rules here — edit `AGENTS.md` instead.
+
+Essentials (full detail in AGENTS.md):
+
+- Change only the files in the current task card's "Owns" list (`docs/tasks/`); scope is checked by
+  `python scripts/check_scope.py <task-id>`.
+- Fixed stack: Python 3.12, Flask 3.1, Jinja2, stdlib `sqlite3`, pytest. No ORM, no JS framework, no
+  new dependencies beyond `requirements.lock` / `requirements-dev.txt`.
+- Never invent names: routes, functions, columns and Flask APIs are frozen in
+  `docs/plan/07-CONTRACTS.md`. Business rules come only from `docs/BRIEF.md`.
+- Logic (matching, scheduling, auth) is test-first; never weaken, skip or delete a test.
+- Gate: `python scripts/check.py` must pass before anything is "done".
+- Work on your own `task/Txx` branch; only the integration lead (P2) merges into `dev`.
