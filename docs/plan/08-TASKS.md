@@ -21,7 +21,6 @@ Phase 3   T13 recommendations  (needs T07, T10, T11)        joins lanes
           T15 applicants       (needs T11, T14)             joins lanes
           T16 booking          (needs T12, T14; BLOCKED until T-BRIEF)   joins lanes
           T17 booking conflict (needs T16; BLOCKED until T-BRIEF)
-          T18 activity + Today (needs T14)
           T06 authorization sweep (needs T10, T15, T16)   FP-AUTH-3 across every route
              │
 Phase 4   T19 seed data ─┬─> T21 docs
@@ -60,7 +59,7 @@ Gate: phase review clean, FP-AUTH-1 and FP-AUTH-2 tests pass. Tag `phase-1`.
 
 | Lane | Task | Title | Depends on | Requirement | Can run with |
 |---|---|---|---|---|---|
-| CAN | T07 | Candidate profile and skills, Today page shell | T05 | FP-CAN-1 (profile) | T09, T11, T12 |
+| CAN | T07 | Candidate profile and skills, candidate home | T05 | FP-CAN-1 (profile) | T09, T11, T12 |
 | CAN | T08 | Resume upload, list, delete, private download | T07 | FP-CAN-1 (resume) | T09, T10, T11, T12 |
 | EMP | T09 | Company profile, employer home | T05 | FP-EMP-1 | T07, T08, T11, T12 |
 | EMP | T10 | Jobs: create, edit, close, delete, detail | T09 | FP-EMP-2 | T07, T08, T11, T12 |
@@ -81,9 +80,11 @@ Gate: each task reviewed (trigger A), each merge reviewed if dev moved (trigger 
 | T14 | Apply with confirm screen, my applications, statuses | T08, T10 | FP-CAN-3 | T13 |
 | T15 | Employer applicants list and status changes | T11, T14 | FP-EMP-3 | T16 |
 | T16 | Booking: eligibility, bookable slots, confirm, book | T12, T14, T-BRIEF | FP-SCHED-2 | T15 |
-| T17 | Booking conflict contract and concurrency | T16 | FP-SCHED-3 | T18 |
-| T18 | Activity log page and Today page widgets | T14 | Keystone governance | T17 |
-| T06 | Authorization sweep: other user's id and missing id on every route | T10, T15, T16 | FP-AUTH-3 | T17, T18 |
+| T17 | Booking conflict contract and concurrency | T16 | FP-SCHED-3 | T06 |
+| T06 | Authorization sweep: other user's id and missing id on every route | T10, T15, T16 | FP-AUTH-3 | T17 |
+
+T18 (activity log + Today widgets) was DESCOPED 2026-11-19 (D22): not in the brief, so ungraded and
+not audited. The candidate home stays a plain landing page built by T07.
 
 T06 only writes tests. Any hole it finds becomes a bug card `Bxx`, fixed by the owner of that file.
 

@@ -20,8 +20,8 @@ Screens follow the Keystone design canvas (web-only cut). The canvas ID in brack
 | Role | Home after sign-in | Nav items |
 |---|---|---|
 | Visitor | `/` landing [P01] | Sign in, Create account |
-| Candidate | `/candidate/` Today [C06] | Today, Recommendations, Applications, Profile, Activity |
-| Employer | `/employer/` Home [R01] | Home, Company, Jobs, Activity |
+| Candidate | `/candidate/` home [C06] | Home, Recommendations, Applications, Profile |
+| Employer | `/employer/` Home [R01] | Home, Company, Jobs |
 
 ## Journey: candidate
 
@@ -29,7 +29,7 @@ Screens follow the Keystone design canvas (web-only cut). The canvas ID in brack
 Landing [P01] -> Create account [P02] (role = candidate)
   -> Profile [C22/C03]: display name, headline, location, timezone, summary, skills (comma separated)
   -> Resume [C01] (raw text, private to you)
-  -> Today [C06]: profile completeness, top 3 recommendations, application statuses
+  -> Home [C06]: welcome + links to recommendations, applications, profile, resume
   -> Recommendations [C07]: every job, ranked, each with score + matched / missing skills
   -> Job detail [C08]: full job, company card, "Apply to this job"
   -> Confirm application [C11]: shows job, cover note (resume is not shared) -> Submit
@@ -59,7 +59,7 @@ Landing -> Create account (role = employer)
 | Landing | `GET /` | `index.html` | T03 | P01 |
 | Create account | `GET/POST /auth/register` | `auth/register.html` | T05 | P02 |
 | Sign in | `GET/POST /auth/login` | `auth/login.html` | T05 | P02 |
-| Candidate Today | `GET /candidate/` | `candidates/today.html` | T07 | C06 |
+| Candidate home | `GET /candidate/` | `candidates/today.html` | T07 | C06 |
 | Candidate profile | `GET/POST /candidate/profile` | `candidates/profile.html` | T07 | C22 |
 | Resume (view and replace) | `GET/POST /candidate/resume` | `candidates/resume.html` | T08 | C01 |
 | Recommendations | `GET /candidate/recommendations` | `matching/recommendations.html` | T13 | C07 |
@@ -74,7 +74,6 @@ Landing -> Create account (role = employer)
 | Confirm job delete | `GET /employer/jobs/<id>/delete` | `jobs/confirm_delete.html` | T10 | none |
 | Applicants | `GET /employer/jobs/<id>/applicants` | `applications/applicants.html` | T15 | R06, R10 |
 | Interview slots | `GET/POST /employer/slots` | `scheduling/slots.html` | T12 | R13 |
-| Activity log | `GET /activity` | `activity/list.html` | T18 | A02 |
 | Errors | 400, 403, 404, 405, 409, 413, 500 | `errors/<code>.html` | T03 | none |
 
 ## Screen content rules
@@ -115,4 +114,3 @@ single-time formatter).
 | My jobs | "You have not posted a job yet." | Post a job |
 | Applicants | "No one has applied to this job yet." | none |
 | Slots | "No interview slots yet. Add one so applicants can book." | Add slot |
-| Activity | "Nothing here yet. Actions you take will show up here." | none |

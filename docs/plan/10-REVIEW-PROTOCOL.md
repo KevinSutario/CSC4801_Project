@@ -14,7 +14,7 @@ cards, which P1 or P3 reviews.
 
 | Card type | Review depth |
 |---|---|
-| Plain CRUD + templates (T03, T07, T08, T09, T18, T21, docs) | **Light**: read the diff, run `python scripts/check.py`, spot-check one edge case. 5–10 min. |
+| Plain CRUD + templates (T03, T07, T08, T09, T21, docs) | **Light**: read the diff, run `python scripts/check.py`, spot-check one edge case. 5–10 min. |
 | High-risk logic (T11 matching, T12/T16/T17 scheduling, T06 authz sweep, T02 security, any CCxx) | **Careful**: the full checklist below, and try to break it with one adversarial test. |
 | Bug fix (Bxx) | Confirm the new test fails without the fix and passes with it. |
 

@@ -38,7 +38,7 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T15 | 3 | TODO | - | after T11, T14; owner P2 |
 | T16 | 3 | TODO | - | after T12, T14; owner P3 |
 | T17 | 3 | TODO | - | after T16; owner P3 |
-| T18 | 3 | TODO | - | after T14; owner P1 |
+| T18 | - | DESCOPED | - | D22: activity log + Today widgets cut (outside brief, 1-week timeline); blocks nothing |
 | T06 | 3 | TODO | - | after T10, T15, T16; owner P2 |
 | T19 | 4 | TODO | - | after phase 3; owner P3 |
 | T20 | 4 | TODO | - | after phase 3; owner P2 |

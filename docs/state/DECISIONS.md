@@ -133,3 +133,28 @@ An agent may not change these. If one looks wrong, stop and report.
 - **Files changed**: `CLAUDE.md`, `docs/plan/09-AGENT-WORKFLOW.md`, `docs/plan/10-REVIEW-PROTOCOL.md`,
   `docs/state/STATUS.md`. Old versions remain in git history.
 - Reversible: revert this commit to restore the full protocol.
+
+## D21: Scope confirmed to the brief only (2026-11-19, 1-week timeline)
+- Timeline dropped from ~2 months to 1 week. Kevin reviewed the plan against the brief and confirmed
+  the scope is exactly the brief's graded requirements — no extra features.
+- Confirmed to KEEP (all brief MUSTs): accounts/auth (FP-AUTH-1/2/3), candidate profile + skills +
+  raw-text resume (FP-CAN-1), recommendations + match score (FP-CAN-2, FP-MATCH-1), apply + tracker
+  (FP-CAN-3), company profile (FP-EMP-1), job posting (FP-EMP-2), applicants + accept/reject
+  (FP-EMP-3), interview slots + booking + atomic conflict (FP-SCHED-1/2/3), docs/Docker/seed
+  (FP-DOC-1/2/3, FP-SUB-1). "Role fit" = the match score. Booking kept at minimal (not polished).
+- Confirmed to DROP: job search (never in brief, ungraded — not built); the stop/resume toggle
+  (D18, deferred); the activity log + Today dashboard (D22).
+- Rationale: grading is requirements (10) + cross-team audit (30); a non-brief feature earns nothing
+  and still costs build + audit-surface time. Spend the week on brief MUSTs.
+
+## D22: Activity log + Today dashboard descoped (2026-11-19)
+- T18 (activity-log viewer page + Today-page dashboard widgets) is cut for this submission. Neither
+  is in the brief, so both are ungraded and not audited.
+- The `audit_log` table and `audit.log_event` STAY — features still write audit rows (FP-SEC-ish,
+  and it is cheap); only the *viewer page* and the dashboard widgets are removed.
+- The candidate home (`/candidate/`, `candidates.today`) stays as a plain landing page (welcome +
+  links), built by T07. `core.index` still redirects signed-in candidates there.
+- Effects: T18 card marked DESCOPED (kept for history); `app/activity/*` dropped from T01's
+  blueprints; `activity.list` + `tests/unit/test_activity.py` removed from contracts and T04; T18
+  removed from the Phase-3 map and the P1 lane; T17 and T06 no longer list T18 as a parallel peer.
+- Reversible: T18.md retains the full spec; re-add the blueprint and route to restore it.

@@ -33,7 +33,6 @@ app/
                service.py routes.py        loads data, calls engine
   applications/ statuses.py service.py routes_candidate.py review_service.py routes_employer.py
   scheduling/  slots.py booking.py routes_employer.py routes_candidate.py
-  activity/    routes.py                   own-events activity log
   templates/
     base.html                layout, nav per role, flash messages, csrf meta
     components/              macros: button, card, badge, field, table, empty_state, confirm

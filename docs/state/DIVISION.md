@@ -9,7 +9,7 @@ workflow rules in `AGENTS.md` and `docs/plan/09-AGENT-WORKFLOW.md` still apply u
 
 | Person | Lane (theme) | Owns, across the whole project |
 |---|---|---|
-| **P1 — Candidate experience & docs** | everything a candidate sees + final docs | profile, resume, recommendations, apply, activity/Today, README/SPEC/INSTALL |
+| **P1 — Candidate experience & docs** | everything a candidate sees + final docs | profile, resume, recommendations, apply, README/SPEC/INSTALL |
 | **P2 — Employer, auth/security & integration lead** | employer side + the security spine + merging | security module, auth, company, jobs, applicants, authz sweep, Docker; also owns `dev`, STATUS/JOURNAL/DECISIONS, phase gates and the current contract fix |
 | **P3 — Platform core, matching & scheduling** | the shared skeleton + the pure logic | app skeleton/schema, test harness, matching engine, time/slots, booking + conflict, seed data |
 
@@ -27,7 +27,7 @@ parallel, and puts the three shared-but-sequential Phase-1 tasks on whoever owns
 | T03 | design tokens, layout, components, landing | **P1** | 1 |
 | T04 | test harness: fixtures, factories, placeholders | **P3** | 1 |
 | T05 | register, sign in, sign out, safe redirects | **P2** | 1 |
-| T07 | candidate profile & skills, Today shell | **P1** | 2 |
+| T07 | candidate profile & skills, candidate home | **P1** | 2 |
 | T08 | resume upload/list/delete/download | **P1** | 2 |
 | T09 | company profile, employer home | **P2** | 2 |
 | T10 | jobs: create/edit/close/delete/detail | **P2** | 2 |
@@ -38,7 +38,6 @@ parallel, and puts the three shared-but-sequential Phase-1 tasks on whoever owns
 | T15 | employer applicants list + status changes | **P2** | 3 |
 | T16 | booking: eligibility, slots, confirm, book | **P3** | 3 |
 | T17 | booking conflict + concurrency | **P3** | 3 |
-| T18 | activity log page + Today widgets | **P1** | 3 |
 | T06 | authorization sweep (FP-AUTH-3) | **P2** | 3 |
 | T19 | seed demo data + reset command | **P3** | 4 |
 | T20 | Dockerfile, wsgi, start-up | **P2** | 4 |
@@ -70,11 +69,11 @@ Each person builds their own card on their own `task/Txx` branch and runs the ga
 
 - **T14 (P1)** and **T15 (P2)** depend on apply/jobs landing; T15 also needs T11.
 - **T13 (P1)** needs T07+T10+T11. **T16 (P3)** needs T12+T14. **T17 (P3)** hardens T16.
-- **T18 (P1)** needs T14. **T06 (P2)** is the authz sweep and goes last (needs T10, T15, T16).
+- **T06 (P2)** is the authz sweep and goes last (needs T10, T15, T16).
 
-Safe parallel pairs (non-overlapping files): T15 (P2) ∥ T16 (P3); T17 (P3) ∥ T18 (P1).
+Safe parallel pairs (non-overlapping files): T15 (P2) ∥ T16 (P3); T13 (P1) ∥ T16/T17 (P3).
 T13 and T14 are both P1, so P1 runs them back to back. T06 writes only tests; any hole it finds
-becomes a `Bxx` bug card fixed by the owner of that file.
+becomes a `Bxx` bug card fixed by the owner of that file. (T18 was descoped, D22.)
 
 **Phase 4 — delivery.** T19 (P3) and T20 (P2) run together, then T21 (P1, the docs) after both.
 

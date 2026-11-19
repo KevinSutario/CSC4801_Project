@@ -305,15 +305,5 @@
   "T17": {
     "names": [],
     "endpoints": []
-  },
-  "T18": {
-    "names": [],
-    "endpoints": [
-      [
-        "activity.list",
-        "GET",
-        "/activity"
-      ]
-    ]
   }
 }

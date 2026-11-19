@@ -17,7 +17,7 @@ plain `dict` (convert rows with `dict(row)`) or `list[dict]`, never `sqlite3.Row
 def create_app(test_config: dict | None = None) -> Flask
 ```
 Registers blueprints in this order: `core`, `auth`, `candidates`, `employers`, `jobs`, `matching`,
-`applications`, `scheduling`, `activity`. Calls `security.init_app(app)` and `errors.init_app(app)`.
+`applications`, `scheduling`. Calls `security.init_app(app)` and `errors.init_app(app)`.
 Creates `instance/` and `UPLOAD_DIR` if missing.
 
 ### `app/config.py` (T01)
@@ -316,8 +316,9 @@ def book_slot(conn: Conn, candidate_id: int, application_id: int, slot_id: int) 
 `scheduling.book` POST `/candidate/applications/<int:application_id>/book/<int:slot_id>`
 Booking refusals re-render `scheduling/book.html` with the message (DEFAULT (not in brief)).
 
-### activity (T18)
-`app/activity/routes.py`: `activity.list` GET `/activity` (signed-in users; own events only)
+### activity — DESCOPED (D22)
+The activity-log viewer page is cut for this submission. The `audit_log` table and
+`audit.log_event` stay (features write to them); only the page is gone.
 
 ---
 
@@ -350,7 +351,6 @@ Route modules start as stubs (T01): `from . import bp` and nothing else. The own
 | `tests/unit/test_can_apply.py` | T14 | `test_fp_can_3_pending_duplicate_and_application_owner` |
 | `tests/unit/test_emp_applicants.py` | T15 | `test_fp_emp_3_applicant_fields_order_status_and_role` |
 | `tests/unit/test_sched_booking.py` | T16, then T17 | `test_fp_sched_2_eligible_booking`, `test_fp_sched_2_ineligible_booking`, `test_fp_sched_3_conflict_contract` |
-| `tests/unit/test_activity.py` | T18 | none (extra) |
 | `tests/unit/test_authz_sweep.py` | T06 | `test_fp_sec_1_object_access_boundaries` |
 
 T04 creates every file in this table that does not exist yet, holding the template test names as
