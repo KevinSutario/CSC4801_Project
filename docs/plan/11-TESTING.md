@@ -48,17 +48,21 @@ def test_fp_emp_2_job_validation_and_deletion(conn, make_employer, make_company)
 |---|---|
 | FP-AUTH-1 | register, then login works, session has user; logout clears it; protected page redirects after logout; invalid email, short password, duplicate email, bad role all rejected with field errors |
 | FP-AUTH-2 | stored hash is not the password; two users with the same password get different hashes; correct password verifies; wrong password does not |
-| FP-AUTH-3 | candidate cannot open employer pages (403); employer A cannot see or edit employer B's job (agreed code); missing id gives 404 |
-| FP-CAN-1 | profile saves and reloads; skills normalised and deduped; resume: wrong type and too-large rejected; owner can download; another candidate cannot; rules from brief for employers |
-| FP-CAN-2 | every open job is returned (count equals open jobs); each keeps all its original fields; order follows the brief; closed jobs excluded if the brief says so |
-| FP-CAN-3 | second pending application to the same job is refused with the brief's result; a candidate cannot read another's application |
+| FP-AUTH-3 | candidate cannot open employer pages (403); employer A editing/viewing employer B's job gets 403; a missing id gives 404; resume view of any non-own id gives 403 |
+| FP-CAN-1 | profile saves and reloads (including display name); skills normalised and deduped; resume text saved and replaced; owner can read it; another candidate and an employer get 403 by direct URL |
+| FP-CAN-2 | every job is returned (count equals all jobs; there is no closed state); each keeps all its original fields; order follows the brief |
+| FP-CAN-3 | a second application to the same job is refused with the brief's result, whatever the first's status; a candidate cannot read another's application |
 | FP-EMP-1 | create, read back, update company; validation errors; one company per employer |
-| FP-EMP-2 | every invalid field rejected; valid job saved with skills; delete removes it and follows the brief for linked rows; cannot delete another employer's job |
+| FP-EMP-2 | every invalid field rejected; valid job saved with skills (empty list allowed); delete with any application refused with 409, job and applications unchanged; cannot delete another employer's job (403) |
 | FP-EMP-3 | applicant rows have exactly the brief's fields, in the brief's order; status change follows allowed transitions; only the job's owner (employer role) can see or change |
 | FP-MATCH-1 | every brief example exactly; normalisation cases; the floor; each tie-breaker on its own, and both together |
-| FP-SCHED-1 | slot entered in Asia/Hong_Kong stored as correct UTC; shown back correctly in another zone; end before start rejected; nonexistent DST time rejected; delete works; deleting a booked slot follows the brief |
-| FP-SCHED-2 | eligible applicant books; ineligible (wrong status, another job, someone else's application) refused |
-| FP-SCHED-3 | second booking of the same slot gets exactly the brief's conflict result; the database still holds one booking |
+| FP-SCHED-1 | slot entered in Asia/Hong_Kong stored as correct UTC; shown back correctly in another zone; end before start rejected; duration not exactly 30 minutes rejected; start in the past rejected; nonexistent DST time rejected; delete works; deleting a booked slot is 409 |
+| FP-SCHED-2 | eligible applicant books; ineligible (wrong status, another employer's slot, someone else's application, already has a booking, past slot) refused; each leaves no new booking row |
+| FP-SCHED-3 | second booking of the same slot gets exactly the brief's conflict result (409, "Slot already booked"); the database still holds one booking |
+| FP-SEC-1 | object-access boundaries: own id OK; another user's id 403; missing id 404 (`test_authz_sweep.py::test_fp_sec_1_object_access_boundaries`, T06) |
+| FP-SEC-2 | SQL metacharacters in email/display name stay bound: the users table survives and the literal strings are stored (`test_auth.py::test_fp_sec_2_sql_metacharacters_stay_bound`, T05) |
+| FP-SEC-3 | `<script>` in company name/description renders escaped, raw tag never in the response (`test_emp_company.py::test_fp_sec_3_script_tag_is_escaped`, T09) |
+| FP-SEC-4 | the `app` fixture's DATABASE is under `tmp_path` and differs between two tests (`test_db.py::test_fp_sec_4_tests_use_isolated_database`, T01) |
 
 ## Extra test layers (cheap, find the bugs reviewers miss)
 

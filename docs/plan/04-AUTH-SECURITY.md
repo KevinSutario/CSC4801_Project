@@ -27,10 +27,13 @@ marks. This file is the spec, and it doubles as the checklist every reviewer use
 - `@role_required("employer")` or `("candidate")`: wrong role gives 403.
 - **Object ownership is checked in the service, every time**, with the actor id passed in.
   Never trust an id from the form or URL on its own.
-- Missing object gives 404. Another user's object gives 403 or 404, as the brief says
-  (FP-AUTH-3). Until the brief says otherwise, use **404** for both, so ids cannot be probed.
+- A missing object gives **404** (`NotFound`). An object that exists but belongs to another user
+  gives **403** (`Forbidden`) (FP-AUTH-3: "authenticated user with the wrong role or owner: 403
+  Forbidden"; "missing object that the caller would otherwise be allowed to access: 404 Not Found").
+- One exception: `get_resume_for_viewer` checks ownership before existence, so any id that is not the
+  caller's own gives 403, including a missing one (D10).
 - Ownership helpers (in services): `get_owned_job(conn, employer_id, job_id)`,
-  `get_owned_slot(...)`, `get_own_application(...)`, `can_view_resume(conn, viewer, resume_id)`.
+  `delete_slot(...)`, `get_own_application(...)`, `get_resume_for_viewer(conn, viewer_id, candidate_id)`.
 
 ## Request security
 
@@ -49,22 +52,16 @@ marks. This file is the spec, and it doubles as the checklist every reviewer use
 | Mass assignment | Services take named fields only. Never `**request.form`. `role` is never editable after sign-up. |
 | Integer ids | Route converters `<int:job_id>`, so non-numbers give 404. |
 
-## File uploads (resumes)
+## Resumes
 
-- `MAX_CONTENT_LENGTH` set from `MAX_UPLOAD_MB`; larger uploads give 413 with a friendly page.
-- Allowed types from the brief; default PDF only. Check the extension **and** the first bytes
-  (`%PDF-`).
-- Stored as `secrets.token_hex(16) + ".pdf"` under `UPLOAD_DIR`, outside `static/`.
-- `original_name` is for display only. It passes through `werkzeug.utils.secure_filename` and is
-  never used as a path.
-- Download route checks `can_view_resume`, then `send_file(path, as_attachment=True,
-  download_name=original_name, mimetype="application/pdf")`.
-- Deleting a resume removes the row and the file.
+- A resume is raw text, one per candidate, private to its owner (FP-CAN-1). No file is ever
+  uploaded or stored on disk.
+- Only the owner may read it; any other candidate or employer gets 403 through
+  `get_resume_for_viewer`. Rendered escaped by Jinja autoescape (FP-SEC-3).
 
 ## Data privacy
 
-- A resume is private to its owner, plus anyone the brief allows (likely the employer of a job
-  the candidate applied to).
+- A resume is private to its owner only. No employer or other candidate may read it.
 - Employers see applicants only for their own jobs.
 - The audit log never stores passwords, tokens or file contents.
 - Demo data uses fake people and companies only.
@@ -74,10 +71,11 @@ marks. This file is the spec, and it doubles as the checklist every reviewer use
 1. Every new route has `@login_required` and the right `@role_required`, or a written reason why not.
 2. Every POST form includes `csrf_field()`. No route skips the CSRF check.
 3. Every service that loads an object by id also checks the actor owns it or may see it.
-4. Missing and not-yours both give the agreed status code. Try an id that belongs to another user.
+4. A missing object gives 404; another user's object gives 403 (except resume view, 403 for both).
+   Try an id that belongs to another user.
 5. All SQL uses `?` placeholders. Search the diff for `f"`, `.format(`, `%` and `+` near `execute`.
 6. No `|safe`, `Markup(` or `autoescape false` on anything a user typed.
-7. Uploads: size cap, type check by content, random stored name, served only via the checked route.
+7. No file is ever written from user input. Resumes are raw text, owner-only, rendered escaped.
 8. Redirects use `url_for`, or a `next` value that passes the safe-redirect check.
 9. No secret, password, token or traceback appears in logs, flash messages, audit detail or HTML.
 10. Error responses use the error templates, with the right status code.

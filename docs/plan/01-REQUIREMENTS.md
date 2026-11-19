@@ -7,10 +7,10 @@ Every graded requirement, where its rule text lives, which task builds it, and w
 - **READY**: enough is known to build it. Exact limits still come from `docs/BRIEF.md` if the brief
   states them.
 - **BLOCKED**: the rule is defined only in the brief, and the brief has not been pasted in yet.
-  No agent may write logic for a BLOCKED item. Tasks that need it stop at the test-writing step.
-- **NEEDS DECISION**: the brief states the rule, but the task card's default or design contradicts
-  it. The orchestrator decides (and logs it in `docs/state/DECISIONS.md`) before the card is
-  dispatched.
+  No one may write logic for a BLOCKED item. Tasks that need it stop at the test-writing step.
+
+Every row where the brief's rule once clashed with a card default has been resolved and is now READY;
+the resolutions are logged in `docs/state/DECISIONS.md` (D9 to D18) and applied by card CC01.
 
 ## How to unblock
 
@@ -44,7 +44,7 @@ The test names come from the course template. Keep them exactly. Tests live in p
 |---|---|---|---|---|
 | FP-AUTH-1 | Registration and session lifecycle; invalid registration | READY (brief gives no limits; T05 defaults, marked DEFAULT) | T05 | `test_auth.py::test_fp_auth_1_registration_and_session_lifecycle`, `::test_fp_auth_1_invalid_registration` |
 | FP-AUTH-2 | Salted hash and password verification | READY | T05 | `test_auth.py::test_fp_auth_2_salted_hash_and_password_verification` |
-| FP-AUTH-3 | Authorization and missing object | NEEDS DECISION (codes quoted; cards use 404 where the brief says 403) | T06 (phase 3 sweep); each feature task also tests its own routes | `test_auth.py::test_fp_auth_3_authorization_and_missing_object` |
+| FP-AUTH-3 | Authorization and missing object | READY (D9: another user's object 403, missing 404) | T06 (phase 3 sweep); each feature task also tests its own routes | `test_auth.py::test_fp_auth_3_authorization_and_missing_object` |
 
 Rule text (brief section "2. Roles and authentication"):
 
@@ -71,16 +71,17 @@ Open questions for the brief, answered:
   or owner: `403 Forbidden`". For a missing object, 404? "missing object that the caller would
   otherwise be allowed to access: `404 Not Found`". Signed out: "`401 Unauthorized` or redirect to
   login".
-- CONFLICT: T06's default and the feature cards T08, T10, T12, T14, T15, T16 return 404 (`NotFound`)
-  for another user's object. The brief says 403. Decision needed before those cards run.
+- Resolved (D9): another user's object returns 403 (`Forbidden`); a missing object returns 404
+  (`NotFound`). Applied by CC01 to T06, T08, T10, T12, T14, T15, T16. One exception: resume view is
+  403 for any non-own id, missing included (D10).
 
 ### Candidate (FP-CAN)
 
 | ID | What the template says | Status | Task | Tests |
 |---|---|---|---|---|
-| FP-CAN-1 | Profile and private resume rules | NEEDS DECISION (profile part: the brief's editable profile includes "a display name" and no card lets the candidate edit it, so `save_profile` needs a contract change or a new owner; resume part: the brief requires a raw-text resume and owner-only access, T08 builds PDF upload with employer access) | T07, T08 | `test_can_resume.py::test_fp_can_1_profile_and_private_resume_rules` |
-| FP-CAN-2 | Recommendations preserve fields and rank all jobs | NEEDS DECISION (rule quoted; the brief lists "all current (not deleted) jobs", the plan's "closed" job state in T10/T13 hides jobs that are not deleted; also after T11) | T13 | `test_can_recommend.py::test_fp_can_2_recommendations_preserve_fields_and_rank_all_jobs` |
-| FP-CAN-3 | Pending duplicate and application owner | NEEDS DECISION (status names and re-apply rule differ from T14 defaults) | T14 | `test_can_apply.py::test_fp_can_3_pending_duplicate_and_application_owner` |
+| FP-CAN-1 | Profile and private resume rules | READY (D10 raw-text owner-only resume; D16 editable display name) | T07, T08 | `test_can_resume.py::test_fp_can_1_profile_and_private_resume_rules` |
+| FP-CAN-2 | Recommendations preserve fields and rank all jobs | READY (D18: no closed state, list every job; after T11) | T13 | `test_can_recommend.py::test_fp_can_2_recommendations_preserve_fields_and_rank_all_jobs` |
+| FP-CAN-3 | Pending duplicate and application owner | READY (D11: four statuses, apply once ever) | T14 | `test_can_apply.py::test_fp_can_3_pending_duplicate_and_application_owner` |
 
 Rule text (brief section "3. Candidate workflow"):
 
@@ -105,10 +106,8 @@ Open questions, answered:
   employer with an application open it contradicts this.)
 - FP-CAN-2: which fields must each recommendation show? "a visible match score", "the job title,
   employer/company, required skills, and a way to view the description". Do zero-score jobs appear?
-  "list all current (not deleted) jobs", so yes. Closed (not deleted) jobs: CONFLICT. The brief's
-  only exclusion is "deleted"; T10's "closed" state and T13's `list_open_jobs` hide jobs that are
-  not deleted. Decision needed before T10 and T13 run (drop "closed", list closed jobs, or document
-  why closed is not "current").
+  "list all current (not deleted) jobs", so yes. Resolved (D18): there is no "closed" job state; the
+  open/closed flag is removed and `list_jobs` returns every job. Every job that exists is current.
 - FP-CAN-3: application status list? From FP-EMP-3: "exactly these statuses: `Pending`,
   `Interviewing`, `Rejected`, or `Accepted`". New application: "status `Pending`". Can a candidate
   re-apply after a rejection or withdrawal? "apply to a job once"; "A duplicate application by the
@@ -121,8 +120,8 @@ Open questions, answered:
 | ID | What the template says | Status | Task | Tests |
 |---|---|---|---|---|
 | FP-EMP-1 | Company profile | READY | T09 | `test_emp_company.py::test_fp_emp_1_company_profile` |
-| FP-EMP-2 | Job validation and deletion | NEEDS DECISION (rule quoted; T10's cascade-delete default and "skills 1 to 30" are superseded; steps and tests mention the old default) | T10 | `test_emp_jobs.py::test_fp_emp_2_job_validation_and_deletion` |
-| FP-EMP-3 | Applicant fields, order, status and role | NEEDS DECISION (rule quoted; T15's order and field defaults superseded; depends on the FP-CAN-3 status-name decision) | T15 | `test_emp_applicants.py::test_fp_emp_3_applicant_fields_order_status_and_role` |
+| FP-EMP-2 | Job validation and deletion | READY (D12: delete with dependants 409, 403 for another employer, empty skills allowed) | T10 | `test_emp_jobs.py::test_fp_emp_2_job_validation_and_deletion` |
+| FP-EMP-3 | Applicant fields, order, status and role | READY (D11 statuses; D15 applicant tie-breakers) | T15 | `test_emp_applicants.py::test_fp_emp_3_applicant_fields_order_status_and_role` |
 
 Rule text (brief section "4. Employer workflow"):
 
@@ -198,8 +197,8 @@ FP-MATCH-2 "Optional AI enhancement" is optional and not planned (full paragraph
 | ID | What the template says | Status | Task | Tests |
 |---|---|---|---|---|
 | FP-SCHED-1 | Slot creation, timezones and deletion; invalid slots | READY (rule quoted; T12's "15 to 240 minutes" default superseded by "30-minute") | T12 | `test_sched_slots.py::test_fp_sched_1_slot_creation_timezones_and_deletion`, `test_sched_slots.py::test_fp_sched_1_invalid_slots` |
-| FP-SCHED-2 | Eligible and ineligible booking | NEEDS DECISION (rule quoted; the brief scopes slots to "the employer for the candidate's application", T16's steps and tests scope them to the job; also needs the `uq_booking_application` contract change and the status-name decision) | T16 | `test_sched_booking.py::test_fp_sched_2_eligible_booking`, `test_sched_booking.py::test_fp_sched_2_ineligible_booking` |
-| FP-SCHED-3 | Booking conflict contract | NEEDS DECISION (contract quoted; T17's "same candidate books twice" test needs a decided result, `Forbidden` or `Conflict`; T17 also depends on T16, which is NEEDS DECISION) | T17 | `test_sched_booking.py::test_fp_sched_3_conflict_contract` |
+| FP-SCHED-2 | Eligible and ineligible booking | READY (D13: employer-scoped slots, five conditions, uq_booking_application) | T16 | `test_sched_booking.py::test_fp_sched_2_eligible_booking`, `test_sched_booking.py::test_fp_sched_2_ineligible_booking` |
+| FP-SCHED-3 | Booking conflict contract | READY (D14: 409 "Slot already booked"; same candidate twice is Forbidden) | T17 | `test_sched_booking.py::test_fp_sched_3_conflict_contract` |
 
 Rule text (brief section "6. Applications and interview scheduling"):
 
@@ -238,10 +237,14 @@ Open questions, answered:
 
 ### Security (FP-SEC), required unit tests
 
-These four ids are graded and each demands at least one named unit test, but no task card carries
-them as its Requirement. Where they land today: FP-SEC-1 overlaps the T06 sweep; FP-SEC-2 and
-FP-SEC-3 have no owning test name; FP-SEC-4 is covered by `tests/conftest.py` if it uses an isolated
-database. Listed under T-BRIEF's OPEN QUESTIONS.
+These four ids are graded and each has a named unit test, assigned to an owning card by CC01:
+
+| ID | What it checks | Status | Task | Test |
+|---|---|---|---|---|
+| FP-SEC-1 | object-access boundaries (own 200, other's 403, missing 404) | READY | T06 | `test_authz_sweep.py::test_fp_sec_1_object_access_boundaries` |
+| FP-SEC-2 | SQL metacharacters stay a bound value | READY | T05 | `test_auth.py::test_fp_sec_2_sql_metacharacters_stay_bound` |
+| FP-SEC-3 | `<script>` rendered escaped, not as markup | READY | T09 | `test_emp_company.py::test_fp_sec_3_script_tag_is_escaped` |
+| FP-SEC-4 | tests use an isolated database under `tmp_path` | READY | T01 | `test_db.py::test_fp_sec_4_tests_use_isolated_database` |
 
 Rule text (brief section "7. Security requirements"):
 

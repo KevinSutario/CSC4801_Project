@@ -23,15 +23,17 @@ app/
   errors.py              ServiceError classes + HTTP error handlers
   security.py            csrf, security headers, login_required, role_required, rate limit
   audit.py               log_event(conn, actor_id, action, object_type, object_id, detail)
-  timeutil.py            pure: to_utc(), from_utc(), validate_tz()
+  timeutil.py            pure: local_to_utc(), utc_to_local(), format_local(), validate_tz()
+  skills.py              pure: normalise_skill(), parse_skill_list(), get_or_create_skill_ids()
   auth/        routes.py service.py
-  candidates/  routes.py service.py        profile, skills, resume
+  candidates/  profile_service.py routes_profile.py resume_service.py routes_resume.py
   employers/   routes.py service.py        company profile
   jobs/        routes.py service.py        job CRUD, job skills
   matching/    engine.py                   pure scoring + ranking (no db)
-               service.py                  loads data, calls engine
-  applications/ routes.py service.py       apply, list, status changes
-  scheduling/  routes.py service.py        slots, bookings
+               service.py routes.py        loads data, calls engine
+  applications/ statuses.py service.py routes_candidate.py review_service.py routes_employer.py
+  scheduling/  slots.py booking.py routes_employer.py routes_candidate.py
+  activity/    routes.py                   own-events activity log
   templates/
     base.html                layout, nav per role, flash messages, csrf meta
     components/              macros: button, card, badge, field, table, empty_state, confirm
@@ -90,13 +92,13 @@ logout POST -> session.clear() -> redirect to sign in
 
 ### Candidate profile and resume (FP-CAN-1)
 ```
-profile form -> candidates.service.save_profile -> upsert candidate_profiles
+profile form -> candidates.service.save_profile -> upsert candidate_profiles + users.display_name
 skills field "Python, SQL"  -> normalise_skill() each -> replace candidate_skills rows
-resume upload -> size and type check -> random file name -> save under instance/uploads/
-  -> INSERT resumes (owner_id, stored_name, original_name, size, mime)
-resume download GET /resumes/<id> -> can_view_resume(viewer, resume) -> send_file as attachment
+resume form (textarea) -> candidates.service.save_resume -> upsert resumes (owner_id, body)
+resume view GET /candidates/<id>/resume -> get_resume_for_viewer(viewer_id, candidate_id)
+  -> owner sees their text (escaped); anyone else 403
 ```
-Resume files are **never** under `static/`. They are only served through the checked route.
+The resume is raw text, one per candidate, owner-only. No file is ever written to disk.
 
 ### Jobs and company (FP-EMP-1, FP-EMP-2)
 ```
@@ -109,7 +111,7 @@ delete POST -> jobs.service.delete_job -> ownership -> rules from brief for link
 ```
 GET /candidate/recommendations
   -> matching.service.recommend_for(conn, candidate_id)
-       -> load candidate skills (normalised) and ALL open jobs with their skills
+       -> load candidate skills (normalised) and ALL jobs (no closed state, D18) with their skills
        -> matching.engine.rank(candidate_skills, jobs)   pure function, rules from BRIEF
        -> return every job with its score and its fields unchanged
   -> template lists them in ranked order
@@ -118,20 +120,22 @@ GET /candidate/recommendations
 ### Applying and applicants (FP-CAN-3, FP-EMP-3)
 ```
 confirm page (shows exactly what will be sent) -> POST apply
-  -> applications.service.apply -> duplicate pending check -> INSERT applications
-employer applicants page -> applications.service.list_applicants(conn, employer_id, job_id)
+  -> applications.service.apply -> apply-once check (any existing = Conflict) -> INSERT applications
+employer applicants page -> applications.review_service.list_applicants(conn, employer_id, job_id)
   -> ownership -> ordered per brief -> fields per brief
-status change POST -> applications.service.set_status -> allowed transitions -> audit
+status change POST -> applications.review_service.set_status -> any status but the current one -> audit
 ```
 
 ### Slots and booking (FP-SCHED)
 ```
-employer slot form (local date, time, timezone) -> timeutil.to_utc -> scheduling.service.create_slot
-candidate booking POST -> scheduling.service.book_slot
+employer slot form (local date, time, timezone) -> timeutil.local_to_utc inside scheduling.slots.create_slot
+  (employer-owned slot, exactly 30 minutes, in the future, D13)
+candidate booking POST -> scheduling.booking.book_slot
   -> BEGIN IMMEDIATE (one writer at a time)
-  -> eligibility check (brief) -> slot still free? -> INSERT bookings (UNIQUE slot_id)
-  -> COMMIT, or on IntegrityError: conflict result defined by the brief
-display -> timeutil.from_utc(utc, viewer_tz)
+  -> five conditions (own interviewing application, no existing booking, slot is this employer's,
+     future, unbooked) -> INSERT bookings (UNIQUE slot_id, UNIQUE application_id)
+  -> COMMIT, or on IntegrityError: Conflict("Slot already booked"), 409 (D14)
+display -> timeutil.utc_to_local(utc, viewer_tz)
 ```
 
 ## Configuration
@@ -140,7 +144,7 @@ display -> timeutil.from_utc(utc, viewer_tz)
 |---|---|---|
 | `SECRET_KEY` | random per start (sessions end on restart) | session signing key |
 | `DATABASE` | `instance/keystone.sqlite3` | SQLite file path |
-| `UPLOAD_DIR` | `instance/uploads` | resume storage, outside static |
+| `UPLOAD_DIR` | `instance/uploads` | unused since CC01 (resumes are raw text); kept so the Dockerfile and `.env.example` do not change |
 | `MAX_UPLOAD_MB` | value from brief, else 2 | upload size cap |
 | `PORT` | 8080 | waitress port in Docker |
 

@@ -91,7 +91,7 @@ ACTIONS: frozenset[str]   # the fixed list in 03-DATA-MODEL.md; log_event raises
 
 ### `app/skills.py` (T01 writes a PROVISIONAL version, T11 owns it afterwards)
 ```python
-def normalise_skill(raw: str) -> str          # PROVISIONAL: strip, lower-case, collapse spaces
+def normalise_skill(raw: str) -> str          # brief FP-MATCH-1: strip surrounding whitespace, lower-case; nothing else (no inner-space collapsing)
 def parse_skill_list(text: str) -> list[str]  # split on commas, normalise, drop empties, dedupe keeping order
 def get_or_create_skill_ids(conn: Conn, names: list[str]) -> list[int]   # names already normalised
 ```
@@ -116,16 +116,17 @@ Macro signatures are in `06-DESIGN-SYSTEM.md`. Import with
 
 ### `tests/conftest.py` (T01 writes app, client, conn; T04 adds the rest)
 Fixtures: `app`, `client`, `conn`, `make_candidate`, `make_employer`, `make_company`, `make_job`,
-`make_application`, `make_slot`, `login`, `login_as`, `csrf_post`. Signatures:
+`make_application`, `make_slot`, `make_booking`, `login`, `login_as`, `csrf_post`. Signatures:
 ```python
 make_candidate(email="cand@example.com", password="Passw0rd!", name="Mei Lin Tan",
                skills=("python", "sql")) -> int          # user id
 make_employer(email="emp@example.com", password="Passw0rd!", name="Daniel Wong") -> int
 make_company(employer_id: int, name="Harbourline Logistics") -> int
-make_job(employer_id: int, title="Data Analyst", skills=("python",), is_open=1, **cols) -> int
+make_job(employer_id: int, title="Data Analyst", skills=("python",), **cols) -> int
 make_application(candidate_id: int, job_id: int, status="pending") -> int
-make_slot(employer_id: int, job_id: int, starts_at="2030-01-07T02:00:00Z",
-          ends_at="2030-01-07T02:45:00Z", created_tz="UTC") -> int
+make_slot(employer_id: int, starts_at="2030-01-07T02:00:00Z",
+          ends_at="2030-01-07T02:30:00Z", created_tz="UTC") -> int
+make_booking(application_id: int, slot_id: int) -> int
 login(client, email, password) -> Response           # through /auth/login (works after T05)
 login_as(client, user_id: int, role: str) -> None     # sets the session directly, plus a csrf token
 csrf_post(client, url, data: dict, **kwargs) -> Response   # adds the session CSRF token
@@ -156,9 +157,10 @@ def get_user(conn: Conn, user_id: int) -> dict | None
 `app/candidates/profile_service.py`
 ```python
 def get_profile(conn: Conn, candidate_id: int) -> dict
-    # keys: headline, location, timezone, summary, skills (list[str]), updated_at (or None)
-def save_profile(conn: Conn, candidate_id: int, headline: str, location: str,
+    # keys: display_name, headline, location, timezone, summary, skills (list[str]), updated_at (or None)
+def save_profile(conn: Conn, candidate_id: int, display_name: str, headline: str, location: str,
                  timezone: str, summary: str, skills_text: str) -> None
+    # updates users.display_name (1 to 80 chars after strip, DEFAULT (not in brief)) in the same transaction
 ```
 `app/candidates/routes_profile.py`: `candidates.today` GET `/candidate/`;
 `candidates.profile` GET, POST `/candidate/profile`
@@ -166,16 +168,17 @@ def save_profile(conn: Conn, candidate_id: int, headline: str, location: str,
 ### candidates: resume (T08)
 `app/candidates/resume_service.py`
 ```python
-def save_resume(conn: Conn, upload_dir: str, owner_id: int, file) -> int   # file: werkzeug FileStorage
-def list_resumes(conn: Conn, owner_id: int) -> list[dict]
-def delete_resume(conn: Conn, upload_dir: str, owner_id: int, resume_id: int) -> None
-def can_view_resume(conn: Conn, viewer_id: int, viewer_role: str, resume_id: int) -> bool
-def get_resume_for_download(conn: Conn, viewer_id: int, viewer_role: str, resume_id: int) -> dict
-    # raises NotFound if missing or not allowed
+def get_resume(conn: Conn, owner_id: int) -> dict | None      # keys: owner_id, body, updated_at
+def save_resume(conn: Conn, owner_id: int, body: str) -> None
+    # strip; ValidationError({"body": ...}) if empty or over RESUME_MAX_CHARS; upsert; audit resume.update
+def get_resume_for_viewer(conn: Conn, viewer_id: int, candidate_id: int) -> dict
+    # Forbidden unless viewer_id == candidate_id; then NotFound if that candidate has no resume
+RESUME_MAX_CHARS: int = 20000     # DEFAULT (not in brief)
 ```
-`app/candidates/routes_resume.py`: `candidates.resume` GET, POST `/candidate/resume`;
-`candidates.resume_delete` POST `/candidate/resume/<int:resume_id>/delete`;
-`candidates.resume_download` GET `/resumes/<int:resume_id>`
+`app/candidates/routes_resume.py`: `candidates.resume` GET, POST `/candidate/resume` (candidate only:
+shows the current text in a textarea, POST replaces it); `candidates.resume_view` GET
+`/candidates/<int:candidate_id>/resume` (`@login_required`, any role: the owner sees their text,
+anyone else gets 403 through `get_resume_for_viewer`)
 
 ### employers (T09)
 `app/employers/service.py`
@@ -195,12 +198,17 @@ def create_job(conn: Conn, employer_id: int, title: str, description: str, locat
                employment_type: str, salary_min: str, salary_max: str, skills_text: str) -> int
 def update_job(conn: Conn, employer_id: int, job_id: int, title: str, description: str,
                location: str, employment_type: str, salary_min: str, salary_max: str,
-               skills_text: str, is_open: bool) -> None
+               skills_text: str) -> None
 def delete_job(conn: Conn, employer_id: int, job_id: int) -> None
-def get_owned_job(conn: Conn, employer_id: int, job_id: int) -> dict    # NotFound if not theirs
+    # Forbidden if another employer's; Conflict if the job has any application (interview slots are
+    # employer-owned since CC01, so applications and their bookings are the only dependants);
+    # deletes nothing in that case
+def count_dependants(conn: Conn, job_id: int) -> int
+def get_owned_job(conn: Conn, employer_id: int, job_id: int) -> dict
+    # NotFound if missing; Forbidden if another employer's
 def get_job(conn: Conn, job_id: int) -> dict    # with company_name, skills; NotFound if missing
 def list_jobs_for_employer(conn: Conn, employer_id: int) -> list[dict]
-def list_open_jobs(conn: Conn) -> list[dict]    # every open job with company_name and skills
+def list_jobs(conn: Conn) -> list[dict]         # every job with company_name and skills
 EMPLOYMENT_TYPES: tuple[str, ...]               # from the brief
 ```
 Salary fields arrive as form strings; the service parses them (empty means None).
@@ -212,10 +220,12 @@ Salary fields arrive as form strings; the service parses them (empty means None)
 `app/matching/engine.py` (pure: no imports from `app` except `app.skills`)
 ```python
 def score(candidate_skills: set[str], job_skills: set[str]) -> dict
-    # {"score": <number per brief>, "matched": sorted list, "missing": sorted list}
+    # {"score": int, "matched": sorted list, "missing": sorted list}
+    # score = 100 when the job has no required skills, else floor(100 * |C ∩ R| / |R|)
+    # (integer arithmetic: 100 * len(common) // len(required))
 def rank(candidate_skills: set[str], jobs: list[dict]) -> list[dict]
     # returns NEW dicts: each job's fields unchanged plus score, matched, missing;
-    # sorted by the brief's rule and both tie-breakers; never mutates the input
+    # sorted by score descending, then title.lower(), then id; never mutates the input
 ```
 `app/matching/service.py` (T13)
 ```python
@@ -227,21 +237,30 @@ def score_candidate_for_job(conn: Conn, candidate_id: int, job_id: int) -> dict
 ### applications (T14 candidate side, T15 employer side)
 `app/applications/statuses.py` (T14)
 ```python
-STATUSES: tuple[str, ...]                      # from the brief, first is "pending"
-TRANSITIONS: dict[str, tuple[str, ...]]        # allowed next statuses, from the brief
-LABELS: dict[str, str]                         # status -> display text
+STATUSES: tuple[str, ...] = ("pending", "interviewing", "rejected", "accepted")   # brief FP-EMP-3, stored lower-case
+TRANSITIONS: dict[str, tuple[str, ...]]        # every status -> the other three (brief has no transition rules)
+LABELS: dict[str, str]                         # "pending" -> "Pending", and so on
 ```
 `app/applications/service.py` (T14)
 ```python
-def apply(conn: Conn, candidate_id: int, job_id: int, resume_id: int | None,
-          cover_note: str) -> int
+def apply(conn: Conn, candidate_id: int, job_id: int, cover_note: str) -> int
+    # Conflict("You have already applied to this job.") for any existing application, whatever its
+    # status; message is DEFAULT (not in brief)
 def list_for_candidate(conn: Conn, candidate_id: int) -> list[dict]
+    # per row at least: id, job_id, job_title, company_name, status, created_at, booking
+    # where booking is None or {"slot_id", "starts_at", "ends_at"}
 def get_own_application(conn: Conn, candidate_id: int, application_id: int) -> dict
+    # NotFound if missing; Forbidden if another candidate's
 ```
 `app/applications/review_service.py` (T15)
 ```python
 def list_applicants(conn: Conn, employer_id: int, job_id: int) -> list[dict]
+    # per row exactly: application_id, candidate_id, candidate_name, headline,
+    # skills (list[str], sorted), score, matched, missing, status, applied_at, booking
+    # where booking is None or {"slot_id", "starts_at", "ends_at"}
 def set_status(conn: Conn, employer_id: int, application_id: int, new_status: str) -> None
+    # any status in STATUSES other than the current one (ValidationError({"status": ...}) otherwise);
+    # never touches bookings
 ```
 `app/applications/routes_candidate.py` (T14): `applications.confirm` GET and
 `applications.submit` POST `/jobs/<int:job_id>/apply`; `applications.mine` GET `/candidate/applications`
@@ -264,23 +283,36 @@ converts back, and compares.
 
 `app/scheduling/slots.py` (T12)
 ```python
-def create_slot(conn: Conn, employer_id: int, job_id: int, date_str: str, start_str: str,
-                end_str: str, tz_name: str) -> int
+def create_slot(conn: Conn, employer_id: int, date_str: str, start_str: str, end_str: str,
+                tz_name: str) -> int
+    # ValidationError: bad date or time, unknown zone, DST gap, end not after start,
+    # duration not exactly 30 minutes, start not in the future, overlap with the employer's own slot
+    # (overlap rule is DEFAULT (not in brief))
 def delete_slot(conn: Conn, employer_id: int, slot_id: int) -> None
-def list_slots_for_job(conn: Conn, employer_id: int, job_id: int) -> list[dict]   # adds "booked": bool
+    # NotFound if missing; Forbidden if another employer's; Conflict if booked (409 is DEFAULT (not in brief))
+def list_slots_for_employer(conn: Conn, employer_id: int) -> list[dict]   # adds "booked": bool; start ascending
 ```
 `app/scheduling/booking.py` (T16, then T17)
 ```python
 def is_eligible(conn: Conn, candidate_id: int, application_id: int) -> bool
+    # loads the application with get_own_application (NotFound if missing, Forbidden if another
+    # candidate's), then returns True only if status is interviewing and it has no booking yet
 def list_bookable_slots(conn: Conn, candidate_id: int, application_id: int) -> list[dict]
+    # future, unbooked slots of the employer who owns the application's job; start ascending
 def book_slot(conn: Conn, candidate_id: int, application_id: int, slot_id: int) -> int
-    # Forbidden if not eligible; NotFound if missing or not theirs; Conflict per brief
+    # NotFound: application or slot missing. Forbidden: application is another candidate's, or
+    # status is not interviewing, or the application already has a booking, or the slot belongs
+    # to another employer, or the slot is in the past. Conflict("Slot already booked"): slot
+    # already booked (checked inside BEGIN IMMEDIATE, and again from sqlite3.IntegrityError).
+    # No booking row is written on any failure; on Conflict a booking.conflict audit row is
+    # written in a separate transaction after the rollback (D14).
 ```
 `app/scheduling/routes_employer.py` (T12): `scheduling.slots` GET, POST
-`/employer/jobs/<int:job_id>/slots`; `scheduling.delete_slot` POST `/employer/slots/<int:slot_id>/delete`
+`/employer/slots`; `scheduling.delete_slot` POST `/employer/slots/<int:slot_id>/delete`
 `app/scheduling/routes_candidate.py` (T16): `scheduling.application_detail` GET
 `/candidate/applications/<int:application_id>`; `scheduling.confirm_booking` GET and
 `scheduling.book` POST `/candidate/applications/<int:application_id>/book/<int:slot_id>`
+Booking refusals re-render `scheduling/book.html` with the message (DEFAULT (not in brief)).
 
 ### activity (T18)
 `app/activity/routes.py`: `activity.list` GET `/activity` (signed-in users; own events only)
@@ -301,13 +333,13 @@ Route modules start as stubs (T01): `from . import bp` and nothing else. The own
 
 | File | Owner | Template test names it must contain |
 |---|---|---|
-| `tests/unit/test_db.py` | T01 | none (extra) |
+| `tests/unit/test_db.py` | T01 | `test_fp_sec_4_tests_use_isolated_database` |
 | `tests/unit/test_security.py` | T02 | none (extra) |
 | `tests/unit/test_audit.py` | T02 | none (extra) |
-| `tests/unit/test_auth.py` | T04 (placeholders), T05, then T06 | `test_fp_auth_1_registration_and_session_lifecycle`, `test_fp_auth_1_invalid_registration`, `test_fp_auth_2_salted_hash_and_password_verification`, `test_fp_auth_3_authorization_and_missing_object` |
+| `tests/unit/test_auth.py` | T04 (placeholders), T05, then T06 | `test_fp_auth_1_registration_and_session_lifecycle`, `test_fp_auth_1_invalid_registration`, `test_fp_auth_2_salted_hash_and_password_verification`, `test_fp_auth_3_authorization_and_missing_object`, `test_fp_sec_2_sql_metacharacters_stay_bound` |
 | `tests/unit/test_can_profile.py` | T07 | none (extra) |
 | `tests/unit/test_can_resume.py` | T08 | `test_fp_can_1_profile_and_private_resume_rules` |
-| `tests/unit/test_emp_company.py` | T09 | `test_fp_emp_1_company_profile` |
+| `tests/unit/test_emp_company.py` | T09 | `test_fp_emp_1_company_profile`, `test_fp_sec_3_script_tag_is_escaped` |
 | `tests/unit/test_emp_jobs.py` | T10 | `test_fp_emp_2_job_validation_and_deletion` |
 | `tests/unit/test_matching.py` | T11 | `test_fp_match_1_examples_normalization_and_floor`, `test_fp_match_1_both_tie_breakers` |
 | `tests/unit/test_timeutil.py` | T12 | none (extra) |
@@ -317,7 +349,7 @@ Route modules start as stubs (T01): `from . import bp` and nothing else. The own
 | `tests/unit/test_emp_applicants.py` | T15 | `test_fp_emp_3_applicant_fields_order_status_and_role` |
 | `tests/unit/test_sched_booking.py` | T16, then T17 | `test_fp_sched_2_eligible_booking`, `test_fp_sched_2_ineligible_booking`, `test_fp_sched_3_conflict_contract` |
 | `tests/unit/test_activity.py` | T18 | none (extra) |
-| `tests/unit/test_authz_sweep.py` | T06 | none (extra) |
+| `tests/unit/test_authz_sweep.py` | T06 | `test_fp_sec_1_object_access_boundaries` |
 
 T04 creates every file in this table that does not exist yet, holding the template test names as
 `@pytest.mark.skip(reason="TODO Txx")` placeholders, and deletes the template's
