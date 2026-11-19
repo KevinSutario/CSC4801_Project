@@ -6,6 +6,8 @@ States: READY, BLOCKED, RUNNING, CHECKED, REVIEWED, MERGED, DONE.
 
 Current phase: **1** · Brief: **present** (docs/BRIEF.md holds the full course brief)
 
+Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 employer/auth+integration lead, P3 platform/matching/scheduling).
+
 | Task | Phase | State | Worktree | Notes |
 |---|---|---|---|---|
 | T00 | 0 | MERGED | - | merged into dev at 42113ab; task and merge reviews PASS; gate passed (17 tests); phase-0 gate pending |
