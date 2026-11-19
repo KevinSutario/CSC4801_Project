@@ -1,11 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>409</title>
-</head>
-<body>
-<h1>409</h1>
-<p>Conflict. {{ message }}</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}409 · Keystone{% endblock %}
+{% block content %}<h1>Conflict</h1><p>{{ message }}</p>{% endblock %}

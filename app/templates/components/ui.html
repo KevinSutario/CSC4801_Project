@@ -1,0 +1,51 @@
+{% macro button(label, kind="primary", type="submit") -%}
+  <button class="btn btn-{{ kind }}" type="{{ type }}">{{ label }}</button>
+{%- endmacro %}
+
+{% macro link_button(label, href, kind="secondary") -%}
+  <a class="btn btn-{{ kind }}" href="{{ href }}">{{ label }}</a>
+{%- endmacro %}
+
+{% macro badge(text, tone="neutral") -%}
+  <span class="badge badge-{{ tone }}">{{ text }}</span>
+{%- endmacro %}
+
+{% macro card(title=None) -%}
+  <section class="card">
+    {% if title %}<h2 class="card-title">{{ title }}</h2>{% endif %}
+    {{ caller() }}
+  </section>
+{%- endmacro %}
+
+{% macro empty_state(text, action_label=None, action_href=None) -%}
+  <div class="empty">
+    <p>{{ text }}</p>
+    {% if action_label and action_href %}{{ link_button(action_label, action_href) }}{% endif %}
+  </div>
+{%- endmacro %}
+
+{% macro score_bar(score, max_score) -%}
+  {% set ratio = (score / max_score) if max_score else 0 %}
+  {% set filled = (ratio * 5)|round(0, 'floor')|int %}
+  <div class="score-bar" role="img" aria-label="Score {{ score }} out of {{ max_score }}">
+    <span class="score-bar-segments" aria-hidden="true">
+      {% for segment in range(5) %}<span class="score-bar-segment{% if segment < filled %} is-filled{% endif %}"></span>{% endfor %}
+    </span>
+    <span class="score-bar-value">{{ score }}/{{ max_score }}</span>
+  </div>
+{%- endmacro %}
+
+{% macro confirm_box(title) -%}
+  <section class="confirm-box">
+    <h2>{{ title }}</h2>
+    {{ caller() }}
+  </section>
+{%- endmacro %}
+
+{% macro flash_messages() -%}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash {% if category == 'error' %}flash-error{% else %}flash-success{% endif %}" role="status">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+{%- endmacro %}
