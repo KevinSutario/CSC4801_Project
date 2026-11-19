@@ -76,6 +76,7 @@ CREATE TABLE jobs (
   employment_type TEXT NOT NULL DEFAULT '',          -- (brief) allowed values
   salary_min   INTEGER,                              -- (brief) required or optional
   salary_max   INTEGER,
+  accepting_applications INTEGER NOT NULL DEFAULT 1 CHECK (accepting_applications IN (0, 1)),
   created_at   TEXT NOT NULL,
   updated_at   TEXT NOT NULL,
   CHECK (salary_min IS NULL OR salary_max IS NULL OR salary_min <= salary_max)

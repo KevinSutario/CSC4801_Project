@@ -45,6 +45,7 @@ Landing -> Create account (role = employer)
   -> Company [R03 area]: name, industry, location, website, description
   -> Jobs [R03]: list, "Post a job"
   -> New job [R05]: title, description, location, type, salary range, skills
+  -> Stop / resume applications on a job (confirm screen) -> job keeps showing, Apply button hidden
   -> Job applicants [R06/R10]: applicants in the brief's order, each with match score, skills,
      status; actions per allowed status change
   -> Confirm status change -> Updated
@@ -72,6 +73,7 @@ Landing -> Create account (role = employer)
 | My jobs | `GET /employer/jobs` | `jobs/list.html` | T10 | R03 |
 | New or edit job | `GET/POST /employer/jobs/new`, `/employer/jobs/<id>/edit` | `jobs/form.html` | T10 | R05 |
 | Confirm job delete | `GET /employer/jobs/<id>/delete` | `jobs/confirm_delete.html` | T10 | none |
+| Confirm stop/resume applications | `GET /employer/jobs/<id>/accepting` | `jobs/confirm_accepting.html` | T10 | none |
 | Applicants | `GET /employer/jobs/<id>/applicants` | `applications/applicants.html` | T15 | R06, R10 |
 | Interview slots | `GET/POST /employer/slots` | `scheduling/slots.html` | T12 | R13 |
 | Activity log | `GET /activity` | `activity/list.html` | T18 | A02 |

@@ -204,17 +204,22 @@ def delete_job(conn: Conn, employer_id: int, job_id: int) -> None
     # employer-owned since CC01, so applications and their bookings are the only dependants);
     # deletes nothing in that case
 def count_dependants(conn: Conn, job_id: int) -> int
+def set_job_accepting(conn: Conn, employer_id: int, job_id: int, accepting: bool) -> None
+    # NotFound if missing; Forbidden if another employer's; sets accepting_applications; audit job.update
 def get_owned_job(conn: Conn, employer_id: int, job_id: int) -> dict
     # NotFound if missing; Forbidden if another employer's
-def get_job(conn: Conn, job_id: int) -> dict    # with company_name, skills; NotFound if missing
+def get_job(conn: Conn, job_id: int) -> dict
+    # with company_name, skills, accepting_applications (bool); NotFound if missing
 def list_jobs_for_employer(conn: Conn, employer_id: int) -> list[dict]
-def list_jobs(conn: Conn) -> list[dict]         # every job with company_name and skills
+def list_jobs(conn: Conn) -> list[dict]
+    # every job with company_name, skills, accepting_applications (bool)
 EMPLOYMENT_TYPES: tuple[str, ...]               # from the brief
 ```
 Salary fields arrive as form strings; the service parses them (empty means None).
 `app/jobs/routes.py`: `jobs.my_jobs` GET `/employer/jobs`; `jobs.new` GET, POST `/employer/jobs/new`;
 `jobs.edit` GET, POST `/employer/jobs/<int:job_id>/edit`; `jobs.confirm_delete` GET and
-`jobs.delete` POST `/employer/jobs/<int:job_id>/delete`; `jobs.detail` GET `/jobs/<int:job_id>`
+`jobs.delete` POST `/employer/jobs/<int:job_id>/delete`; `jobs.confirm_accepting` GET and
+`jobs.set_accepting` POST `/employer/jobs/<int:job_id>/accepting`; `jobs.detail` GET `/jobs/<int:job_id>`
 
 ### matching (T11 engine, T13 service and routes)
 `app/matching/engine.py` (pure: no imports from `app` except `app.skills`)
@@ -245,7 +250,8 @@ LABELS: dict[str, str]                         # "pending" -> "Pending", and so 
 ```python
 def apply(conn: Conn, candidate_id: int, job_id: int, cover_note: str) -> int
     # Conflict("You have already applied to this job.") for any existing application, whatever its
-    # status; message is DEFAULT (not in brief)
+    # status; Conflict("This job is not accepting applications.") if the job's
+    # accepting_applications is 0; both 409, messages DEFAULT (not in brief)
 def list_for_candidate(conn: Conn, candidate_id: int) -> list[dict]
     # per row at least: id, job_id, job_title, company_name, status, created_at, booking
     # where booking is None or {"slot_id", "starts_at", "ends_at"}

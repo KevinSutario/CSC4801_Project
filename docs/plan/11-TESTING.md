@@ -51,9 +51,9 @@ def test_fp_emp_2_job_validation_and_deletion(conn, make_employer, make_company)
 | FP-AUTH-3 | candidate cannot open employer pages (403); employer A editing/viewing employer B's job gets 403; a missing id gives 404; resume view of any non-own id gives 403 |
 | FP-CAN-1 | profile saves and reloads (including display name); skills normalised and deduped; resume text saved and replaced; owner can read it; another candidate and an employer get 403 by direct URL |
 | FP-CAN-2 | every job is returned (count equals all jobs; there is no closed state); each keeps all its original fields; order follows the brief |
-| FP-CAN-3 | a second application to the same job is refused with the brief's result, whatever the first's status; a candidate cannot read another's application |
+| FP-CAN-3 | a second application to the same job is refused with the brief's result, whatever the first's status; applying to a job that is not accepting applications is refused with 409; a candidate cannot read another's application |
 | FP-EMP-1 | create, read back, update company; validation errors; one company per employer |
-| FP-EMP-2 | every invalid field rejected; valid job saved with skills (empty list allowed); delete with any application refused with 409, job and applications unchanged; cannot delete another employer's job (403) |
+| FP-EMP-2 | every invalid field rejected; valid job saved with skills (empty list allowed); delete with any application refused with 409, job and applications unchanged; cannot delete another employer's job (403); owner can stop/resume applications, another employer cannot (403) |
 | FP-EMP-3 | applicant rows have exactly the brief's fields, in the brief's order; status change follows allowed transitions; only the job's owner (employer role) can see or change |
 | FP-MATCH-1 | every brief example exactly; normalisation cases; the floor; each tie-breaker on its own, and both together |
 | FP-SCHED-1 | slot entered in Asia/Hong_Kong stored as correct UTC; shown back correctly in another zone; end before start rejected; duration not exactly 30 minutes rejected; start in the past rejected; nonexistent DST time rejected; delete works; deleting a booked slot is 409 |

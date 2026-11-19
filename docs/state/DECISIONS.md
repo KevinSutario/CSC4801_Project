@@ -98,11 +98,15 @@ An agent may not change these. If one looks wrong, stop and report.
 - Password rules, email format, session lifetime, field length limits, slot overlap policy, display
   timezone, HTTP code for deleting a booked slot. Roles stored `candidate`/`employer`, shown
   `Candidate`/`Employer`.
-- No closed state for jobs. The brief's FP-EMP-2 has create, view, edit and delete only, and FP-CAN-2
-  lists "all current (not deleted) jobs", so `jobs.is_open` is removed from the schema, contracts,
-  factories and cards; every job that exists is current. Four of six T-BRIEF reviewers flagged the
-  old "exclude closed jobs" default as a MUST violation. Orchestrator decision 2026-11-12, to be
-  confirmed by Kevin; reverting means re-adding one column and one flag.
+- Jobs can stop accepting applications (Kevin, 2026-11-19, revising the earlier "no closed state").
+  Column `jobs.accepting_applications INTEGER NOT NULL DEFAULT 1 CHECK (… IN (0,1))`. An employer
+  toggles it with a dedicated confirm action (`jobs.confirm_accepting` GET, `jobs.set_accepting`
+  POST), not through the edit form. When it is 0, `apply` raises `Conflict("This job is not
+  accepting applications.")` → 409 (consistent with the other FP-* conflict codes). This is NOT the
+  old `is_open` hide-from-list flag: the job still appears in recommendations and listings (FP-CAN-2
+  "all current (not deleted) jobs"), just with a "Not accepting applications" badge and no Apply
+  button. `jobs.is_open` stays removed. DEFAULT (not in brief): the column, the 409 code and the
+  badge text; the brief only requires that an employer can manage their postings.
 - `normalise_skill` implements the brief's rule from T01 onward (strip, lower-case, nothing else; no
   collapsing of inner spaces), so no row ever needs re-normalising.
 - Also noted: the FP-SEC-1 to FP-SEC-4 unit tests are assigned by CC01 to T06, T05, T09 and T01.
