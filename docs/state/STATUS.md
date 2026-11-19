@@ -22,8 +22,8 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | B3 | 0 | MERGED | - | 9f1f8db; task and merge reviews PASS; 41 tests; rename source/destination scope enforced |
 | T-BRIEF | - | MERGED | - | 8f78b54; task review FIX then re-check, 4 minor leftovers carried into CC01 (D19); rules quoted on T05-T17 |
 | CC01 | - | MERGED | - | 2026-11-19: D9-D18 applied to contracts, schema, plan docs and cards T01-T21; Step-7 grep clean; lint + 41 tests pass. Decided 26 review findings skipped per Kevin ("only the decisions"); minor wording nitpicks remain for later. |
-| T01 | 1 | TODO | - | next up; owner P3 |
-| T02 | 1 | TODO | - | after T01; owner P2 |
+| T01 | 1 | MERGED | - | merged into dev at 644ea70 (--no-ff); review PASS (reviews/T01.md, careful); gate passed (56 tests); schema byte-identical to 03-DATA-MODEL.md |
+| T02 | 1 | DOING | - | started after T01; owner P2 |
 | T03 | 1 | TODO | - | after T02; owner P1 |
 | T04 | 1 | TODO | - | after T03; owner P3 |
 | T05 | 1 | TODO | - | after T04; owner P2 |
@@ -46,7 +46,8 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T22 | 5 | TODO | - | after phase 4; all three |
 
 ## Running now
-Nothing. CC01 is merged, so Phase 1 can start: P3 takes T01 first (the rest of Phase 1 is serial).
+T02 (P2: security module + audit log). T01 merged into dev at 644ea70. Phase 1 is serial:
+T01 (done) → T02 → T03 → T04 → T05.
 
 ## Phase 0 gate
 - Closed earlier (pre-migration). T00, B1, B2, B3 MERGED; their file outputs (scripts, packet
