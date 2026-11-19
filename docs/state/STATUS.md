@@ -24,7 +24,7 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | CC01 | - | MERGED | - | 2026-11-19: D9-D18 applied to contracts, schema, plan docs and cards T01-T21; Step-7 grep clean; lint + 41 tests pass. Decided 26 review findings skipped per Kevin ("only the decisions"); minor wording nitpicks remain for later. |
 | T01 | 1 | MERGED | - | merged into dev at 644ea70 (--no-ff); review PASS (reviews/T01.md, careful); gate passed (56 tests); schema byte-identical to 03-DATA-MODEL.md |
 | T02 | 1 | MERGED | - | merged into dev at 52325b0 (--no-ff); review PASS (reviews/T02.md, careful); gate passed (81 tests); security.py + audit.py |
-| T03 | 1 | TODO | - | next up; owner P1 (handed off — P1 builds on task/T03) |
+| T03 | 1 | MERGED | - | next up; owner P1 (handed off — P1 builds on task/T03) |
 | T04 | 1 | TODO | - | after T03; owner P3 |
 | T05 | 1 | TODO | - | after T04; owner P2 |
 | T07 | 2 | TODO | - | after phase 1; owner P1 |
