@@ -116,9 +116,46 @@ def test_fp_auth_2_salted_hash_and_password_verification(conn):
     assert "password_hash" not in user
 
 
-@pytest.mark.skip(reason="TODO T06")
-def test_fp_auth_3_authorization_and_missing_object():
-    raise NotImplementedError
+def test_fp_auth_3_authorization_and_missing_object(
+    client, conn, make_candidate, make_employer, make_company, make_job,
+    make_application, login_as, csrf_post,
+):
+    """Readable FP-AUTH-3 summary (full route-by-route sweep is in test_authz_sweep.py)."""
+    from app.jobs import service as jobs_service
+
+    emp_a = make_employer(email="a@example.com")
+    make_company(emp_a, name="A Co")
+    emp_b = make_employer(email="b@example.com")
+    make_company(emp_b, name="B Co")
+    job_a = jobs_service.create_job(conn, emp_a, "Job A", "Desc", "", "full-time", "", "", "python")
+    cand_a = make_candidate(email="ca@example.com")
+    cand_b = make_candidate(email="cb@example.com")
+    app_a = make_application(cand_a, job_a)
+
+    # employer B editing A's job -> 403 (wrong owner)
+    login_as(client, emp_b, "employer")
+    r = csrf_post(client, f"/employer/jobs/{job_a}/edit", {
+        "title": "x", "description": "y", "location": "", "employment_type": "full-time",
+        "salary_min": "", "salary_max": "", "skills": "",
+    })
+    assert r.status_code == 403
+
+    # candidate B reading A's application -> 403 (wrong owner)
+    login_as(client, cand_b, "candidate")
+    assert client.get(f"/candidate/applications/{app_a}").status_code == 403
+
+    # candidate opening an employer-only page -> 403 (wrong role)
+    assert client.get("/employer/company").status_code == 403
+
+    # employer A, missing job -> 404
+    login_as(client, emp_a, "employer")
+    assert client.get("/employer/jobs/999999/edit").status_code == 404
+
+    # signed out -> redirect to login (not the content)
+    with client.session_transaction() as s:
+        s.clear()
+    resp = client.get("/candidate/applications")
+    assert resp.status_code in (301, 302)
 
 
 def test_fp_sec_2_sql_metacharacters_stay_bound(conn):

@@ -33,23 +33,24 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T10 | 2 | MERGED | - | merged into dev at 0ea9bbb (--no-ff); review PASS (reviews/T10.md, careful); gate 124 passed; jobs CRUD + detail; FP-EMP-2 (409 delete, 403/404 ownership); list_jobs fixed 2 queries |
 | T11 | 2 | MERGED | - | merged into dev at 372ab19 (--no-ff); owner P3; review PASS (reviews/T11.md, careful); pure matching engine (score/rank) + skill normalisation; FP-MATCH-1 |
 | T12 | 2 | MERGED | - | merged into dev at e38b360 (--no-ff); owner P3; review PASS (reviews/T12.md, careful); timeutil (UTC/DST) + interview slots (30min, overlap, 409-on-booked); FP-SCHED-1 |
-| T13 | 3 | TODO | - | after T07, T10, T11; owner P1 |
-| T14 | 3 | TODO | - | after T08, T10; owner P1 |
-| T15 | 3 | TODO | - | after T11, T14; owner P2 |
-| T16 | 3 | TODO | - | after T12, T14; owner P3 |
-| T17 | 3 | TODO | - | after T16; owner P3 |
+| T13 | 3 | MERGED | - | merged into dev at 7ba049a (--no-ff); owner P1; review PASS (reviews/T13.md, careful); recommendations page ranks all jobs; FP-CAN-2 |
+| T14 | 3 | MERGED | - | merged into dev at 58b02d7 (--no-ff); owner P1; review PASS (reviews/T14.md, careful); apply + confirm + my applications; FP-CAN-3 (apply-once, 409 duplicate, 403/404 ownership) |
+| T15 | 3 | MERGED | - | merged into dev at ab63577 (--no-ff); owner P2; review PASS (reviews/T15.md, careful); applicants list + status changes; FP-EMP-3 (order D15, 4 statuses, 403/404, booking kept on status change) |
+| T16 | 3 | MERGED | - | merged into dev at a924ea2 (--no-ff); owner P3; review PASS (reviews/T16.md, careful); booking eligibility + bookable slots + confirm; FP-SCHED-2 (5 conditions, no partial write). T17 hardens concurrency next |
+| T17 | 3 | MERGED | - | merged into dev at f0ee89c (--no-ff); owner P3; review PASS (reviews/T17.md, careful); booking conflict contract + concurrency; FP-SCHED-3 (BEGIN IMMEDIATE + unique index, 409 "Slot already booked", booking.conflict audit) |
 | T18 | - | DESCOPED | - | D22: activity log + Today widgets cut (outside brief, 1-week timeline); blocks nothing |
-| T06 | 3 | TODO | - | after T10, T15, T16; owner P2 |
+| T06 | 3 | MERGED | - | merged into dev at 96408a1 (--no-ff); owner P2; review PASS (reviews/T06.md, careful); authorization sweep FP-AUTH-3/FP-SEC-1 over all 14 id-routes; NO holes found, no Bxx needed |
 | T19 | 4 | TODO | - | after phase 3; owner P3 |
 | T20 | 4 | TODO | - | after phase 3; owner P2 |
 | T21 | 4 | TODO | - | after T19, T20; owner P1 |
 | T22 | 5 | TODO | - | after phase 4; all three |
 
 ## Running now
-Phase 2 complete: all six cards (T07-T12) MERGED on dev. Gate 168 passed, 8 placeholder skips
-(Phase 3+ cards). Next: the **Phase-2 gate** (P2) — check.py + check_contracts.py pass, every
-Phase-2 FP-* (FP-CAN-1, FP-EMP-1, FP-EMP-2, FP-MATCH-1, FP-SCHED-1) has a test, then merge dev into
-main and tag phase-2. After that, Phase 3 (T13 P1, T14 P1, T15 P2, T16 P3, T17 P3, T06 P2) begins.
+Phase 3 COMPLETE: T13, T14, T15, T16, T17, T06 all MERGED on dev. 219 passed, 0 skips. The authz
+sweep (T06) found no holes. Next: the **Phase-3 gate** (P2) — check.py + check_contracts.py pass,
+Phase-3 FP-* (FP-CAN-2, FP-CAN-3, FP-EMP-3, FP-SCHED-2, FP-SCHED-3, FP-AUTH-3, FP-SEC-1) each have a
+test, then merge dev->main and tag phase-3. (phase-1, phase-2 tags already on main.)
+After that: Phase 4 — T19 (seed data, P3), T20 (Docker, P2), then T21 (docs, P1). Phase 5: T22 self-audit.
 Note: the Phase-1 gate (merge dev->main, tag phase-1) should be confirmed — verify main + tag exist.
 Skeleton freeze applies from Phase 1 onward: app/__init__.py, db.py, schema.sql, security.py,
 audit.py, base.html, components/*, conftest.py — only a CCxx (P2) may touch these.

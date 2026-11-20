@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import badge, link_button, empty_state, card %}
+{% block title %}Applicants · Keystone{% endblock %}
+{% block content %}
+  <div class="page-header"><h1>Applicants</h1></div>
+  {% if not applicants %}
+    {{ empty_state("No one has applied to this job yet.") }}
+  {% else %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Candidate</th><th>Headline</th><th>Match</th><th>Skills</th>
+          <th>Status</th><th>Applied (UTC)</th><th>Interview</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in applicants %}
+          <tr>
+            <td>{{ a.candidate_name }}</td>
+            <td>{{ a.headline }}</td>
+            <td>{{ a.score }}<br><small>Matched: {{ a.matched|join(", ") or "none" }}<br>Missing: {{ a.missing|join(", ") or "none" }}</small></td>
+            <td>{% for s in a.skills %}{{ badge(s, "neutral") }}{% endfor %}</td>
+            <td>{{ badge(labels[a.status], badge_tones[a.status]) }}</td>
+            <td>{{ a.applied_at }}</td>
+            <td>{% if a.booking %}{{ a.booking.starts_at }} to {{ a.booking.ends_at }}{% else %}Not booked{% endif %}</td>
+            <td>
+              {% for s in statuses %}{% if s != a.status %}{{ link_button(labels[s], "/employer/applications/" ~ a.application_id ~ "/status?to=" ~ s) }}{% endif %}{% endfor %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+  <p>{{ link_button("Back to my jobs", "/employer/jobs") }}</p>
+{% endblock %}

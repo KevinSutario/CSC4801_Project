@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "components/forms.html" import csrf_field %}
+{% from "components/ui.html" import button, link_button, confirm_box %}
+{% block title %}Change status · Keystone{% endblock %}
+{% block content %}
+  <div class="page-header"><h1>Change application status</h1></div>
+  {% call confirm_box("Change " ~ application.candidate_name ~ "'s application from " ~ labels[application.status] ~ " to " ~ labels[to] ~ "?") %}
+    <form method="post" action="/employer/applications/{{ application.id }}/status">
+      {{ csrf_field() }}
+      <input type="hidden" name="to" value="{{ to }}">
+      {{ button("Confirm change") }}
+    </form>
+    {{ link_button("Cancel", "/employer/jobs/" ~ application.job_id ~ "/applicants") }}
+  {% endcall %}
+{% endblock %}
