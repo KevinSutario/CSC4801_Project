@@ -30,7 +30,7 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T07 | 2 | TODO | - | after phase 1; owner P1 |
 | T08 | 2 | TODO | - | after T07; owner P1 |
 | T09 | 2 | MERGED | - | committed directly on dev at 7175141 (no merge commit; review PASS reviews/T09.md light+); gate 104 passed; company profile + employer home; FP-EMP-1 + FP-SEC-3 |
-| T10 | 2 | TODO | - | after T09; owner P2 |
+| T10 | 2 | MERGED | - | merged into dev at 0ea9bbb (--no-ff); review PASS (reviews/T10.md, careful); gate 124 passed; jobs CRUD + detail; FP-EMP-2 (409 delete, 403/404 ownership); list_jobs fixed 2 queries |
 | T11 | 2 | TODO | - | after phase 1; owner P3 |
 | T12 | 2 | TODO | - | after phase 1; owner P3 |
 | T13 | 3 | TODO | - | after T07, T10, T11; owner P1 |
