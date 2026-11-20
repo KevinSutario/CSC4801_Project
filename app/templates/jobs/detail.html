@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import link_button, badge, card %}
+{% block title %}{{ job.title }} · Keystone{% endblock %}
+{% block content %}
+  <div class="page-header"><h1>{{ job.title }}</h1></div>
+  {% call card(job.company_name) %}
+    <p class="job-meta">
+      {% if job.location %}{{ job.location }}{% else %}Location not stated{% endif %}
+      {% if job.employment_type %} · {{ job.employment_type }}{% endif %}
+    </p>
+    <p class="job-salary">
+      {% if job.salary_min is not none or job.salary_max is not none %}
+        Salary: {{ job.salary_min if job.salary_min is not none else "?" }} to {{ job.salary_max if job.salary_max is not none else "?" }}
+      {% else %}Salary: Not stated{% endif %}
+    </p>
+  {% endcall %}
+  <div class="card">
+    <h2>Required skills</h2>
+    {% if job.skills %}
+      <p>{% for skill in job.skills %}{{ badge(skill, "neutral") }}{% endfor %}</p>
+    {% else %}
+      <p class="muted">No specific skills required.</p>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>Description</h2>
+    <p class="job-description">{{ job.description }}</p>
+  </div>
+  {% if current_user and current_user.role == 'candidate' %}
+    {{ link_button("Apply to this job", "/jobs/" ~ job.id ~ "/apply", kind="primary") }}
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,36 @@
+{% macro csrf_field() -%}
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{%- endmacro %}
+
+{% macro field(name, label, value="", error=None, type="text", required=False, help="") -%}
+  {% set error_id = name ~ "-error" %}
+  {% set help_id = name ~ "-help" %}
+  <div class="field">
+    <label for="{{ name }}">{{ label }}{% if required %} <span class="required-label">Required</span>{% endif %}</label>
+    <input id="{{ name }}" name="{{ name }}" type="{{ type }}" value="{{ value }}"{% if required %} required{% endif %}{% if help or error %} aria-describedby="{% if help %}{{ help_id }}{% endif %}{% if help and error %} {% endif %}{% if error %}{{ error_id }}{% endif %}"{% endif %}>
+    {% if help %}<small class="field-help" id="{{ help_id }}">{{ help }}</small>{% endif %}
+    {% if error %}<small class="field-error" id="{{ error_id }}">{{ error }}</small>{% endif %}
+  </div>
+{%- endmacro %}
+
+{% macro textarea_field(name, label, value="", error=None, required=False, help="") -%}
+  {% set error_id = name ~ "-error" %}
+  {% set help_id = name ~ "-help" %}
+  <div class="field">
+    <label for="{{ name }}">{{ label }}{% if required %} <span class="required-label">Required</span>{% endif %}</label>
+    <textarea id="{{ name }}" name="{{ name }}"{% if required %} required{% endif %}{% if help or error %} aria-describedby="{% if help %}{{ help_id }}{% endif %}{% if help and error %} {% endif %}{% if error %}{{ error_id }}{% endif %}"{% endif %}>{{ value }}</textarea>
+    {% if help %}<small class="field-help" id="{{ help_id }}">{{ help }}</small>{% endif %}
+    {% if error %}<small class="field-error" id="{{ error_id }}">{{ error }}</small>{% endif %}
+  </div>
+{%- endmacro %}
+
+{% macro select_field(name, label, options, value="", error=None) -%}
+  {% set error_id = name ~ "-error" %}
+  <div class="field">
+    <label for="{{ name }}">{{ label }}</label>
+    <select id="{{ name }}" name="{{ name }}"{% if error %} aria-describedby="{{ error_id }}"{% endif %}>
+      {% for option_value, option_label in options %}<option value="{{ option_value }}"{% if option_value == value %} selected{% endif %}>{{ option_label }}</option>{% endfor %}
+    </select>
+    {% if error %}<small class="field-error" id="{{ error_id }}">{{ error }}</small>{% endif %}
+  </div>
+{%- endmacro %}

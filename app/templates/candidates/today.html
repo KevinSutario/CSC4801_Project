@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import link_button %}
+{% block title %}Home · Keystone{% endblock %}
+{% block content %}
+  <header class="page-header">
+    <h1>Welcome, {{ profile.display_name }}</h1>
+    <p>Your candidate home.</p>
+  </header>
+  <nav aria-label="Candidate actions">
+    {{ link_button("Recommendations", "/candidate/recommendations") }}
+    {{ link_button("My applications", "/candidate/applications") }}
+    {{ link_button("Edit profile", "/candidate/profile") }}
+    {{ link_button("Résumé", "/candidate/resume") }}
+  </nav>
+{% endblock %}

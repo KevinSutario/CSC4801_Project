@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import link_button, card %}
+{% block title %}Employer home · Keystone{% endblock %}
+{% block content %}
+  <div class="page-header"><h1>Employer home</h1></div>
+  {% if not company %}
+    {% call card("Get started") %}
+      <p>Create your company profile to post jobs.</p>
+      {{ link_button("Create company profile", "/employer/company", kind="primary") }}
+    {% endcall %}
+  {% else %}
+    {% call card(company.name) %}
+      <p>Manage your company, jobs, and interview slots.</p>
+      <p class="home-links">
+        {{ link_button("Company profile", "/employer/company") }}
+        {{ link_button("My jobs", "/employer/jobs") }}
+        {{ link_button("Post a job", "/employer/jobs/new", kind="primary") }}
+        {{ link_button("Interview slots", "/employer/slots") }}
+      </p>
+    {% endcall %}
+  {% endif %}
+{% endblock %}
