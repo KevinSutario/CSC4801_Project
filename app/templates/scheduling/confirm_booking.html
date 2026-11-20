@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "components/forms.html" import csrf_field %}
+{% from "components/ui.html" import button, link_button, confirm_box %}
+{% block title %}Confirm interview · Keystone{% endblock %}
+{% block content %}
+  <header class="page-header"><h1>Confirm your interview</h1></header>
+  {% call confirm_box("Book this interview for " ~ application.job_title ~ "?") %}
+    <p><strong>{{ application.company_name }} · {{ application.job_title }}</strong></p>
+    <p class="job-meta">
+      {{ utc_to_local(slot.starts_at, zone).strftime("%a %d %b %Y, %H:%M") }}
+      –
+      {{ utc_to_local(slot.ends_at, zone).strftime("%H:%M") }}
+      ({{ zone }})
+    </p>
+    <p class="job-meta">
+      {{ utc_to_local(slot.starts_at, slot.created_tz).strftime("%a %d %b %Y, %H:%M") }}
+      –
+      {{ utc_to_local(slot.ends_at, slot.created_tz).strftime("%H:%M") }}
+      ({{ slot.created_tz }})
+    </p>
+    <form method="post"
+          action="/candidate/applications/{{ application.id }}/book/{{ slot.id }}">
+      {{ csrf_field() }}
+      {{ button("Confirm booking") }}
+      {{ link_button("Back to application", "/candidate/applications/" ~ application.id) }}
+    </form>
+  {% endcall %}
+{% endblock %}

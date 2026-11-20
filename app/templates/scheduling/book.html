@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import badge, empty_state, card %}
+{% block title %}{{ application.job_title }} · Keystone{% endblock %}
+{% block content %}
+  <header class="page-header"><h1>{{ application.job_title }}</h1></header>
+  {% if message %}<p class="flash flash-error" role="alert">{{ message }}</p>{% endif %}
+
+  {% call card("Application") %}
+    <p class="job-meta">
+      {{ application.company_name }} ·
+      {{ badge(labels[application.status], badge_tones[application.status]) }}
+    </p>
+  {% endcall %}
+
+  {% if application.booking %}
+    {% call card("Booked interview") %}
+      <p class="job-meta">
+        {{ utc_to_local(application.booking.starts_at, zone).strftime("%a %d %b %Y, %H:%M") }}
+        –
+        {{ utc_to_local(application.booking.ends_at, zone).strftime("%H:%M") }}
+        ({{ zone }})
+      </p>
+    {% endcall %}
+  {% elif eligible %}
+    {% call card("Book an interview (times in " ~ zone ~ ")") %}
+      {% if not slots %}
+        {{ empty_state("No open interview slots yet. Check back later.") }}
+      {% else %}
+        {% for slot in slots %}
+          <div class="job-row">
+            <p class="job-meta">
+              {{ utc_to_local(slot.starts_at, zone).strftime("%a %d %b %Y, %H:%M") }}
+              –
+              {{ utc_to_local(slot.ends_at, zone).strftime("%H:%M") }}
+              ({{ zone }})
+            </p>
+            <p class="job-actions">
+              <a class="btn btn-primary"
+                 href="/candidate/applications/{{ application.id }}/book/{{ slot.id }}">
+                Choose this slot</a>
+            </p>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endcall %}
+  {% else %}
+    {% call card("Interview booking") %}
+      {% if application.status != 'interviewing' %}
+        {{ empty_state("Booking is only open while the application is interviewing.") }}
+      {% else %}
+        {{ empty_state("This application already has an interview booked.") }}
+      {% endif %}
+    {% endcall %}
+  {% endif %}
+{% endblock %}
