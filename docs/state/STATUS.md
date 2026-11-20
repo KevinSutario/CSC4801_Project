@@ -24,8 +24,8 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | CC01 | - | MERGED | - | 2026-11-19: D9-D18 applied to contracts, schema, plan docs and cards T01-T21; Step-7 grep clean; lint + 41 tests pass. Decided 26 review findings skipped per Kevin ("only the decisions"); minor wording nitpicks remain for later. |
 | T01 | 1 | MERGED | - | merged into dev at 644ea70 (--no-ff); review PASS (reviews/T01.md, careful); gate passed (56 tests); schema byte-identical to 03-DATA-MODEL.md |
 | T02 | 1 | MERGED | - | merged into dev at 52325b0 (--no-ff); review PASS (reviews/T02.md, careful); gate passed (81 tests); security.py + audit.py |
-| T03 | 1 | MERGED | - | next up; owner P1 (handed off — P1 builds on task/T03) |
-| T04 | 1 | TODO | - | after T03; owner P3 |
+| T03 | 1 | MERGED | - | merged into dev via PR #2 (e4914cf); owner P1; design tokens, layout, components, landing |
+| T04 | 1 | MERGED | - | merged into dev at 5cd217b (--no-ff); review PASS (reviews/T04.md); gate 77 passed + 20 placeholder skips; conftest factories + per-task placeholder tests. P3's out-of-scope STATUS.md edit dropped at merge (P2 owns this file) |
 | T05 | 1 | TODO | - | after T04; owner P2 |
 | T07 | 2 | TODO | - | after phase 1; owner P1 |
 | T08 | 2 | TODO | - | after T07; owner P1 |
@@ -46,9 +46,9 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T22 | 5 | TODO | - | after phase 4; all three |
 
 ## Running now
-Nothing on P2's side. T02 merged into dev at 52325b0. Next in the serial Phase-1 chain is T03
-(P1: design tokens, layout, components, landing) — handed to P1 to build on task/T03.
-Chain: T01 (done) → T02 (done) → T03 (P1) → T04 (P3) → T05 (P2).
+T05 (P2: register, sign in, sign out, safe redirects) — last card in the serial Phase-1 chain.
+T04 merged into dev at 5cd217b. Chain: T01 → T02 → T03 → T04 (all done) → **T05 (P2, next)**.
+After T05 merges, Phase 1 closes and the shared skeleton freezes; Phase 2 can start in parallel.
 
 ## Phase 0 gate
 - Closed earlier (pre-migration). T00, B1, B2, B3 MERGED; their file outputs (scripts, packet
