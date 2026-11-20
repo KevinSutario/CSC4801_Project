@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "components/forms.html" import field, textarea_field, csrf_field %}
+{% from "components/ui.html" import button %}
+{% block title %}Company profile · Keystone{% endblock %}
+{% block content %}
+  <div class="page-header"><h1>Company profile</h1></div>
+  {% if errors %}
+    <p class="form-summary">{{ errors|length }} field{{ "s" if errors|length != 1 else "" }} need fixing.</p>
+  {% endif %}
+  <div class="card">
+    <form method="post" action="/employer/company">
+      {{ csrf_field() }}
+      {{ field("name", "Company name", value=company.get("name", ""), error=errors.get("name"), required=True) }}
+      {{ field("industry", "Industry", value=company.get("industry", ""), error=errors.get("industry")) }}
+      {{ field("location", "Location", value=company.get("location", ""), error=errors.get("location")) }}
+      {{ field("website", "Website", value=company.get("website", ""), error=errors.get("website"), help="Optional. Must start with https:// or http://.") }}
+      {{ textarea_field("description", "Description", value=company.get("description", ""), error=errors.get("description")) }}
+      {{ button("Save company") }}
+    </form>
+  </div>
+  {% if company.get("website") %}
+    <p class="company-meta">Website: {{ company.get("website") }}</p>
+  {% endif %}
+{% endblock %}
