@@ -6,10 +6,18 @@ of the application's job, the application status is interviewing, the slot is
 in the future and unbooked, and the application has no booking yet. A failed
 booking writes nothing. A booking survives the application later leaving
 interviewing, and the slot stays unavailable.
+
+Rule (brief section 6, FP-SCHED-3 "Atomic concurrency"): when two eligible
+candidates attempt the same slot, exactly one booking exists afterward and the
+loser gets HTTP 409 with the exact message "Slot already booked" plus a
+booking.conflict audit row. A synchronized multi-client test is not required.
 """
+
+import sqlite3
 
 import pytest
 
+from app.db import now_iso
 from app.errors import Conflict, Forbidden, NotFound
 from app.scheduling import booking as service
 
@@ -151,6 +159,149 @@ def test_missing_application_detail_is_404(client, world, login_as):
     assert resp.status_code == 404
 
 
-@pytest.mark.skip(reason="TODO T17")
-def test_fp_sched_3_conflict_contract():
-    raise NotImplementedError
+def test_fp_sched_3_conflict_contract(client, conn, world, login_as, csrf_post):
+    """Two eligible candidates contend for one slot (brief FP-SCHED-3).
+
+    A books slot_a successfully; B POSTs the same slot: HTTP 409 with the exact
+    message "Slot already booked"; still exactly one booking row, still A's; a
+    booking.conflict audit row exists for B's failed attempt.
+    """
+    w = world
+    login_as(client, w["cand_a"], "candidate")
+    resp = csrf_post(client, f"/candidate/applications/{w['app_a']}/book/{w['slot_a']}", {})
+    assert resp.status_code == 302
+
+    # B is also eligible for the same job's employer slots and has no booking.
+    login_as(client, w["cand_b"], "candidate")
+    resp = csrf_post(client, f"/candidate/applications/{w['app_b']}/book/{w['slot_a']}", {})
+    assert resp.status_code == 409
+    body = resp.data.decode()
+    assert "Slot already booked" in body
+
+    # Exactly one booking for the slot, still A's application; B has none.
+    rows = conn.execute("SELECT * FROM bookings WHERE slot_id = ?", (w["slot_a"],)).fetchall()
+    assert len(rows) == 1
+    assert rows[0]["application_id"] == w["app_a"]
+    assert conn.execute(
+        "SELECT COUNT(*) AS n FROM bookings WHERE application_id = ?", (w["app_b"],)
+    ).fetchone()["n"] == 0
+
+    # The failed attempt left a booking.conflict audit row (after the rollback).
+    conflict = conn.execute(
+        "SELECT 1 FROM audit_log WHERE action = 'booking.conflict' AND actor_id = ?",
+        (w["cand_b"],),
+    ).fetchone()
+    assert conflict is not None
+
+
+def test_fp_sched_3_conflict_from_second_connection(app, world):
+    """A booking committed by a second connection to the same file is seen by
+    book_slot, which raises Conflict and does not double-book.
+
+    Not a synchronized concurrency stress test (the brief does not require
+    one): the second connection commits before book_slot runs.
+    """
+    w = world
+    with app.app_context():
+        from app.db import get_db
+
+        conn = get_db()
+        # A second connection to the same database file, per the task card.
+        other = sqlite3.connect(app.config["DATABASE"], isolation_level=None)
+        try:
+            other.execute("BEGIN IMMEDIATE")
+            other.execute(
+                "INSERT INTO bookings (slot_id, application_id, booked_at) VALUES (?, ?, ?)",
+                (w["slot_a"], w["app_a"], now_iso()),
+            )
+            other.execute("COMMIT")
+        finally:
+            other.close()
+
+        # Now book_slot from the first connection sees the slot taken.
+        with pytest.raises(Conflict):
+            service.book_slot(conn, w["cand_b"], w["app_b"], w["slot_a"])
+
+        n = conn.execute(
+            "SELECT COUNT(*) AS n FROM bookings WHERE slot_id = ?", (w["slot_a"],)
+        ).fetchone()["n"]
+        assert n == 1   # no double booking
+        assert conn.execute(
+            "SELECT COUNT(*) AS n FROM bookings WHERE application_id = ?", (w["app_b"],)
+        ).fetchone()["n"] == 0
+
+
+@pytest.mark.parametrize("contended_slot", ["same_slot", "other_slot"])
+def test_fp_sched_3_overlap_same_application_is_forbidden(app, monkeypatch, world,
+                                                          contended_slot):
+    """Regression (T17): a second overlapping request for the SAME application.
+
+    The race: the eligibility checks read the application before BEGIN
+    IMMEDIATE, so both requests see "no booking yet"; the other request commits
+    its booking (on slot_a) after that read but before this one enters the
+    transaction. Simulated by committing the other request's booking on a
+    second connection right before the real BEGIN IMMEDIATE runs, inside a
+    wrapper around booking.transaction. Whether this request aims at the same
+    slot the other request took, or a different one, the result must be
+    Forbidden (D14), never a 409 conflict, and never a booking.conflict audit.
+    """
+    w = world
+    aimed_slot = w["slot_a"] if contended_slot == "same_slot" else w["slot_c"]
+
+    real_transaction = service.transaction
+
+    def racing_transaction(conn, immediate=False):
+        # Runs when book_slot calls transaction(..., immediate=True): the
+        # eligibility checks have already passed on a stale snapshot; the
+        # other request commits here, just before BEGIN IMMEDIATE. Only that
+        # call is intercepted; later transactions (e.g. a conflict audit)
+        # pass through untouched.
+        if immediate:
+            other = sqlite3.connect(app.config["DATABASE"], isolation_level=None)
+            try:
+                other.execute("BEGIN IMMEDIATE")
+                other.execute(
+                    "INSERT INTO bookings (slot_id, application_id, booked_at)"
+                    " VALUES (?, ?, ?)",
+                    (w["slot_a"], w["app_a"], now_iso()),
+                )
+                other.execute("COMMIT")
+            finally:
+                other.close()
+        return real_transaction(conn, immediate=immediate)
+
+    with app.app_context():
+        from app.db import get_db
+
+        conn = get_db()
+        monkeypatch.setattr(service, "transaction", racing_transaction)
+        before = _count_bookings(conn)
+        with pytest.raises(Forbidden):
+            service.book_slot(conn, w["cand_a"], w["app_a"], aimed_slot)
+        assert _count_bookings(conn) == before + 1   # only the other request's row
+        assert conn.execute(
+            "SELECT COUNT(*) AS n FROM bookings WHERE application_id = ?", (w["app_a"],)
+        ).fetchone()["n"] == 1
+        assert conn.execute(
+            "SELECT COUNT(*) AS n FROM audit_log WHERE action = 'booking.conflict'"
+        ).fetchone()["n"] == 0
+
+
+def test_fp_sched_3_same_candidate_twice_is_forbidden_not_conflict(conn, world, make_booking):
+    """The same application re-POSTing after booking is Forbidden (D14,
+    FP-SCHED-2 no-existing-booking), not the FP-SCHED-3 conflict — even though
+    the slot is also occupied. The original booking is unchanged and the
+    refusal is not recorded as booking.conflict."""
+    w = world
+    make_booking(w["app_a"], w["slot_a"])   # this application already booked slot_a
+    before = _count_bookings(conn)
+    with pytest.raises(Forbidden):
+        service.book_slot(conn, w["cand_a"], w["app_a"], w["slot_a"])
+    assert _count_bookings(conn) == before
+    row = conn.execute(
+        "SELECT slot_id, application_id FROM bookings WHERE application_id = ?", (w["app_a"],)
+    ).fetchone()
+    assert row["slot_id"] == w["slot_a"]
+    assert conn.execute(
+        "SELECT COUNT(*) AS n FROM audit_log WHERE action = 'booking.conflict'"
+    ).fetchone()["n"] == 0
