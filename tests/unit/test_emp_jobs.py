@@ -147,3 +147,52 @@ def test_candidate_cannot_post_new_job(client, make_candidate, login_as, csrf_po
         "salary_min": "", "salary_max": "", "skills": "",
     })
     assert resp.status_code == 403
+
+
+def test_fp_emp_2_job_validation_and_deletion(
+    conn, make_employer, make_company, make_candidate, make_application
+):
+    """Template-named FP-EMP-2 test: validation, empty skills, delete rules, ownership.
+
+    The behaviours are also covered in finer-grained tests above; this function carries the
+    exact name the course requirement mapping (01-REQUIREMENTS.md) expects.
+    """
+    emp = make_employer()
+    make_company(emp)
+
+    # invalid: whitespace-only title and bad employment type each raise, nothing written
+    before = _count_jobs(conn)
+    with pytest.raises(ValidationError) as exc:
+        service.create_job(conn, emp, "   ", "Desc", "", "full-time", "", "", "python")
+    assert "title" in exc.value.errors
+    with pytest.raises(ValidationError) as exc:
+        service.create_job(conn, emp, "Ok", "Desc", "", "freelance", "", "", "python")
+    assert "employment_type" in exc.value.errors
+    assert _count_jobs(conn) == before
+
+    # valid job with normalised skills; empty skills list allowed
+    jid = service.create_job(conn, emp, "Data Analyst", "Do data.", "Remote",
+                             "full-time", "50000", "90000", " Python , SQL ,python ")
+    assert set(service.get_job(conn, jid)["skills"]) == {"python", "sql"}
+    jid_empty = service.create_job(conn, emp, "No Skills", "Desc", "", "contract", "", "", "")
+    assert service.get_job(conn, jid_empty)["skills"] == []
+
+    # a job with no applications deletes
+    service.delete_job(conn, emp, jid_empty)
+    with pytest.raises(NotFound):
+        service.get_job(conn, jid_empty)
+
+    # a job with an application: delete refused with Conflict (409), nothing changed
+    make_application(make_candidate(), jid)
+    with pytest.raises(Conflict):
+        service.delete_job(conn, emp, jid)
+    assert service.get_job(conn, jid)["title"] == "Data Analyst"
+    assert conn.execute("SELECT COUNT(*) AS n FROM applications WHERE job_id = ?",
+                        (jid,)).fetchone()["n"] == 1
+
+    # another employer deleting this job: Forbidden (403), nothing deleted
+    other = make_employer(email="other@example.com")
+    make_company(other)
+    with pytest.raises(Forbidden):
+        service.delete_job(conn, other, jid)
+    assert service.get_job(conn, jid)["title"] == "Data Analyst"
