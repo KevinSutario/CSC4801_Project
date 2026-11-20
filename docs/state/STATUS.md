@@ -31,8 +31,8 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T08 | 2 | MERGED | - | merged into dev at 51cae58 (--no-ff, PR #7); owner P1; review PASS (reviews/T08.md, careful); gate 139 passed; private resume, D10 (403 non-own incl missing, 404 own-missing), FP-SEC-3. P1's out-of-scope STATUS.md edit dropped at merge |
 | T09 | 2 | MERGED | - | committed directly on dev at 7175141 (no merge commit; review PASS reviews/T09.md light+); gate 104 passed; company profile + employer home; FP-EMP-1 + FP-SEC-3 |
 | T10 | 2 | MERGED | - | merged into dev at 0ea9bbb (--no-ff); review PASS (reviews/T10.md, careful); gate 124 passed; jobs CRUD + detail; FP-EMP-2 (409 delete, 403/404 ownership); list_jobs fixed 2 queries |
-| T11 | 2 | TODO | - | after phase 1; owner P3 |
-| T12 | 2 | TODO | - | after phase 1; owner P3 |
+| T11 | 2 | MERGED | - | merged into dev at 372ab19 (--no-ff); owner P3; review PASS (reviews/T11.md, careful); pure matching engine (score/rank) + skill normalisation; FP-MATCH-1 |
+| T12 | 2 | MERGED | - | merged into dev at e38b360 (--no-ff); owner P3; review PASS (reviews/T12.md, careful); timeutil (UTC/DST) + interview slots (30min, overlap, 409-on-booked); FP-SCHED-1 |
 | T13 | 3 | TODO | - | after T07, T10, T11; owner P1 |
 | T14 | 3 | TODO | - | after T08, T10; owner P1 |
 | T15 | 3 | TODO | - | after T11, T14; owner P2 |
@@ -46,8 +46,10 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T22 | 5 | TODO | - | after phase 4; all three |
 
 ## Running now
-Phase 2 in progress. MERGED on dev: T07 + T08 (P1), T09 + T10 (P2). Still open: T11 + T12 (P3, not
-yet pushed). Phase 2 closes when all six (T07-T12) are merged; then the Phase-2 gate (P2) and Phase 3.
+Phase 2 complete: all six cards (T07-T12) MERGED on dev. Gate 168 passed, 8 placeholder skips
+(Phase 3+ cards). Next: the **Phase-2 gate** (P2) — check.py + check_contracts.py pass, every
+Phase-2 FP-* (FP-CAN-1, FP-EMP-1, FP-EMP-2, FP-MATCH-1, FP-SCHED-1) has a test, then merge dev into
+main and tag phase-2. After that, Phase 3 (T13 P1, T14 P1, T15 P2, T16 P3, T17 P3, T06 P2) begins.
 Note: the Phase-1 gate (merge dev->main, tag phase-1) should be confirmed — verify main + tag exist.
 Skeleton freeze applies from Phase 1 onward: app/__init__.py, db.py, schema.sql, security.py,
 audit.py, base.html, components/*, conftest.py — only a CCxx (P2) may touch these.
