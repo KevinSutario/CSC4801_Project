@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import card, empty_state, score_bar, badge, link_button %}
+{% block title %}Recommendations · Keystone{% endblock %}
+{% block content %}
+  <header class="page-header"><h1>Recommendations</h1></header>
+  {% if not has_skills %}
+    <p>Add your skills to see how jobs match you. {{ link_button("Edit profile", "/candidate/profile") }}</p>
+  {% endif %}
+  {% if not jobs %}
+    {{ empty_state("No jobs right now. Check back soon.") }}
+  {% else %}
+    {% for job in jobs %}
+      {% call card(job.title) %}
+        <p>{{ job.company_name }}</p>
+        <p>
+          {% if job.location %}{{ job.location }}{% else %}Location not stated{% endif %}
+          {% if job.employment_type %} · {{ job.employment_type }}{% endif %}
+        </p>
+        <p>Salary:
+          {% if job.salary_min is not none or job.salary_max is not none %}
+            {{ job.salary_min if job.salary_min is not none else "?" }} to {{ job.salary_max if job.salary_max is not none else "?" }}
+          {% else %}Not stated{% endif %}
+        </p>
+        <p>Match score: {{ job.score }}%</p>
+        {{ score_bar(job.score, 100) }}
+        <p>Required skills:
+          {% if job.skills %}{% for skill in job.skills %}{{ badge(skill, "neutral") }}{% endfor %}{% else %}None listed{% endif %}
+        </p>
+        <p>Matched: {% if job.matched %}{{ job.matched|join(", ") }}{% else %}None{% endif %}</p>
+        <p>Missing: {% if job.missing %}{{ job.missing|join(", ") }}{% else %}None{% endif %}</p>
+        {{ link_button("View job description", "/jobs/" ~ job.id) }}
+      {% endcall %}
+    {% endfor %}
+  {% endif %}
+{% endblock %}
