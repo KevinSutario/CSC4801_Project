@@ -29,7 +29,7 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T05 | 1 | MERGED | - | committed directly on dev at dc56c6d (no merge commit — branch step was skipped; code reviewed PASS, reviews/T05.md, careful); gate 93 passed; auth service + routes + templates |
 | T07 | 2 | TODO | - | after phase 1; owner P1 |
 | T08 | 2 | TODO | - | after T07; owner P1 |
-| T09 | 2 | TODO | - | after phase 1; owner P2 |
+| T09 | 2 | MERGED | - | committed directly on dev at 7175141 (no merge commit; review PASS reviews/T09.md light+); gate 104 passed; company profile + employer home; FP-EMP-1 + FP-SEC-3 |
 | T10 | 2 | TODO | - | after T09; owner P2 |
 | T11 | 2 | TODO | - | after phase 1; owner P3 |
 | T12 | 2 | TODO | - | after phase 1; owner P3 |
