@@ -39,18 +39,18 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T16 | 3 | MERGED | - | merged into dev at a924ea2 (--no-ff); owner P3; review PASS (reviews/T16.md, careful); booking eligibility + bookable slots + confirm; FP-SCHED-2 (5 conditions, no partial write). T17 hardens concurrency next |
 | T17 | 3 | MERGED | - | merged into dev at f0ee89c (--no-ff); owner P3; review PASS (reviews/T17.md, careful); booking conflict contract + concurrency; FP-SCHED-3 (BEGIN IMMEDIATE + unique index, 409 "Slot already booked", booking.conflict audit) |
 | T18 | - | DESCOPED | - | D22: activity log + Today widgets cut (outside brief, 1-week timeline); blocks nothing |
-| T06 | 3 | TODO | - | after T10, T15, T16; owner P2 |
+| T06 | 3 | MERGED | - | merged into dev at 96408a1 (--no-ff); owner P2; review PASS (reviews/T06.md, careful); authorization sweep FP-AUTH-3/FP-SEC-1 over all 14 id-routes; NO holes found, no Bxx needed |
 | T19 | 4 | TODO | - | after phase 3; owner P3 |
 | T20 | 4 | TODO | - | after phase 3; owner P2 |
 | T21 | 4 | TODO | - | after T19, T20; owner P1 |
 | T22 | 5 | TODO | - | after phase 4; all three |
 
 ## Running now
-Phase 3 almost done: T13, T14, T15, T16, T17 all MERGED on dev (199 passed, 2 skips left — both
-T06). Only **T06 (P2: authorization sweep)** remains — deps T10+T15+T16 met. T06 writes
-test_authz_sweep.py + test_auth.py FP-AUTH-3, scanning every protected route for 401/403/404; each
-hole found becomes a Bxx bug card fixed by that file's owner. After T06, Phase 3 gate (P2): merge
-dev->main, tag phase-3. (Phases 1 and 2 gates done: main tagged phase-1, phase-2.)
+Phase 3 COMPLETE: T13, T14, T15, T16, T17, T06 all MERGED on dev. 219 passed, 0 skips. The authz
+sweep (T06) found no holes. Next: the **Phase-3 gate** (P2) — check.py + check_contracts.py pass,
+Phase-3 FP-* (FP-CAN-2, FP-CAN-3, FP-EMP-3, FP-SCHED-2, FP-SCHED-3, FP-AUTH-3, FP-SEC-1) each have a
+test, then merge dev->main and tag phase-3. (phase-1, phase-2 tags already on main.)
+After that: Phase 4 — T19 (seed data, P3), T20 (Docker, P2), then T21 (docs, P1). Phase 5: T22 self-audit.
 Note: the Phase-1 gate (merge dev->main, tag phase-1) should be confirmed — verify main + tag exist.
 Skeleton freeze applies from Phase 1 onward: app/__init__.py, db.py, schema.sql, security.py,
 audit.py, base.html, components/*, conftest.py — only a CCxx (P2) may touch these.
