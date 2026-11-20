@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "components/forms.html" import textarea_field, csrf_field %}
+{% from "components/ui.html" import button %}
+{% block title %}Resume · Keystone{% endblock %}
+{% block content %}
+  <header class="page-header">
+    <h1>{% if read_only|default(false) %}Resume{% else %}Your resume{% endif %}</h1>
+    <p>Only you can read your resume.</p>
+  </header>
+  {% if read_only|default(false) %}
+    <div class="card"><pre>{{ body }}</pre></div>
+  {% else %}
+    {% if error %}<p role="alert">The resume needs fixing: {{ error }}</p>{% endif %}
+    <form method="post">
+      {{ csrf_field() }}
+      {{ textarea_field("body", "Resume text", body, error, required=True) }}
+      {{ button("Save resume") }}
+    </form>
+  {% endif %}
+{% endblock %}
