@@ -33,7 +33,7 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T10 | 2 | MERGED | - | merged into dev at 0ea9bbb (--no-ff); review PASS (reviews/T10.md, careful); gate 124 passed; jobs CRUD + detail; FP-EMP-2 (409 delete, 403/404 ownership); list_jobs fixed 2 queries |
 | T11 | 2 | MERGED | - | merged into dev at 372ab19 (--no-ff); owner P3; review PASS (reviews/T11.md, careful); pure matching engine (score/rank) + skill normalisation; FP-MATCH-1 |
 | T12 | 2 | MERGED | - | merged into dev at e38b360 (--no-ff); owner P3; review PASS (reviews/T12.md, careful); timeutil (UTC/DST) + interview slots (30min, overlap, 409-on-booked); FP-SCHED-1 |
-| T13 | 3 | TODO | - | after T07, T10, T11; owner P1 |
+| T13 | 3 | MERGED | - | merged into dev at 7ba049a (--no-ff); owner P1; review PASS (reviews/T13.md, careful); recommendations page ranks all jobs; FP-CAN-2 |
 | T14 | 3 | MERGED | - | merged into dev at 58b02d7 (--no-ff); owner P1; review PASS (reviews/T14.md, careful); apply + confirm + my applications; FP-CAN-3 (apply-once, 409 duplicate, 403/404 ownership) |
 | T15 | 3 | TODO | - | after T11, T14; owner P2 |
 | T16 | 3 | TODO | - | after T12, T14; owner P3 |
