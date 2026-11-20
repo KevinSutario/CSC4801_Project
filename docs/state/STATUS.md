@@ -36,7 +36,7 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T13 | 3 | MERGED | - | merged into dev at 7ba049a (--no-ff); owner P1; review PASS (reviews/T13.md, careful); recommendations page ranks all jobs; FP-CAN-2 |
 | T14 | 3 | MERGED | - | merged into dev at 58b02d7 (--no-ff); owner P1; review PASS (reviews/T14.md, careful); apply + confirm + my applications; FP-CAN-3 (apply-once, 409 duplicate, 403/404 ownership) |
 | T15 | 3 | MERGED | - | merged into dev at ab63577 (--no-ff); owner P2; review PASS (reviews/T15.md, careful); applicants list + status changes; FP-EMP-3 (order D15, 4 statuses, 403/404, booking kept on status change) |
-| T16 | 3 | TODO | - | after T12, T14; owner P3 |
+| T16 | 3 | MERGED | - | merged into dev at a924ea2 (--no-ff); owner P3; review PASS (reviews/T16.md, careful); booking eligibility + bookable slots + confirm; FP-SCHED-2 (5 conditions, no partial write). T17 hardens concurrency next |
 | T17 | 3 | TODO | - | after T16; owner P3 |
 | T18 | - | DESCOPED | - | D22: activity log + Today widgets cut (outside brief, 1-week timeline); blocks nothing |
 | T06 | 3 | TODO | - | after T10, T15, T16; owner P2 |
