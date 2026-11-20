@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "components/forms.html" import csrf_field %}
+{% from "components/ui.html" import button, link_button, confirm_box %}
+{% block title %}Delete job · Keystone{% endblock %}
+{% block content %}
+  <div class="page-header"><h1>Delete job</h1></div>
+  {% call confirm_box("Delete “" ~ job.title ~ "”?") %}
+    {% if dependants > 0 %}
+      <p>This job has {{ dependants }} application{{ "s" if dependants != 1 else "" }} and cannot be deleted.</p>
+      {{ link_button("Back to jobs", "/employer/jobs") }}
+    {% else %}
+      <p>This job has no applications and can be deleted. This cannot be undone.</p>
+      <form method="post" action="/employer/jobs/{{ job.id }}/delete">
+        {{ csrf_field() }}
+        {{ button("Delete job", kind="danger") }}
+      </form>
+      {{ link_button("Cancel", "/employer/jobs") }}
+    {% endif %}
+  {% endcall %}
+{% endblock %}

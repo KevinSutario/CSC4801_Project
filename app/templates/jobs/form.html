@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "components/forms.html" import field, textarea_field, select_field, csrf_field %}
+{% from "components/ui.html" import button %}
+{% block title %}{{ "Edit job" if mode == "edit" else "Post a job" }} · Keystone{% endblock %}
+{% block content %}
+  <div class="page-header"><h1>{{ "Edit job" if mode == "edit" else "Post a job" }}</h1></div>
+  {% if errors %}
+    <p class="form-summary">{{ errors|length }} field{{ "s" if errors|length != 1 else "" }} need fixing.</p>
+  {% endif %}
+  <div class="card">
+    <form method="post" action="{{ '/employer/jobs/' ~ job.id ~ '/edit' if mode == 'edit' else '/employer/jobs/new' }}">
+      {{ csrf_field() }}
+      {{ field("title", "Title", value=job.get("title", ""), error=errors.get("title"), required=True) }}
+      {{ textarea_field("description", "Description", value=job.get("description", ""), error=errors.get("description"), required=True) }}
+      {{ field("location", "Location", value=job.get("location", ""), error=errors.get("location")) }}
+      {{ select_field("employment_type", "Employment type", [("full-time", "Full-time"), ("part-time", "Part-time"), ("contract", "Contract"), ("internship", "Internship")], value=job.get("employment_type", "full-time"), error=errors.get("employment_type")) }}
+      {{ field("salary_min", "Minimum salary", value=job.get("salary_min") if job.get("salary_min") is not none else "", error=errors.get("salary_min"), help="Optional whole number.") }}
+      {{ field("salary_max", "Maximum salary", value=job.get("salary_max") if job.get("salary_max") is not none else "", error=errors.get("salary_max"), help="Optional whole number.") }}
+      {{ field("skills", "Required skills", value=job.get("skills_text", ""), error=errors.get("skills"), help="Comma separated. May be empty.") }}
+      {{ button("Save job") }}
+    </form>
+  </div>
+{% endblock %}
