@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import link_button, badge, empty_state, card %}
+{% block title %}My jobs · Keystone{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <h1>My jobs</h1>
+    {{ link_button("Post a job", "/employer/jobs/new", kind="primary") }}
+  </div>
+  {% if not jobs %}
+    {{ empty_state("You have not posted a job yet.", "Post a job", "/employer/jobs/new") }}
+  {% else %}
+    {% for job in jobs %}
+      {% call card() %}
+        <div class="job-row">
+          <h2><a href="/jobs/{{ job.id }}">{{ job.title }}</a></h2>
+          <p class="job-meta">{{ job.company_name }}{% if job.location %} · {{ job.location }}{% endif %}{% if job.employment_type %} · {{ job.employment_type }}{% endif %}</p>
+          <p class="job-skills">
+            {% for skill in job.skills %}{{ badge(skill, "neutral") }}{% endfor %}
+          </p>
+          <p class="job-actions">
+            {{ link_button("Edit", "/employer/jobs/" ~ job.id ~ "/edit") }}
+            {{ link_button("Delete", "/employer/jobs/" ~ job.id ~ "/delete", kind="danger") }}
+          </p>
+        </div>
+      {% endcall %}
+    {% endfor %}
+  {% endif %}
+{% endblock %}
