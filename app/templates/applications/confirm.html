@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "components/forms.html" import textarea_field, csrf_field %}
+{% from "components/ui.html" import button, link_button, confirm_box %}
+{% block title %}Apply to {{ job.title }} · Keystone{% endblock %}
+{% block content %}
+  <header class="page-header"><h1>Review your application</h1></header>
+  {% if message %}<p class="flash flash-error" role="alert">{{ message }}</p>{% endif %}
+  {% if error %}<p role="alert">The cover note needs fixing: {{ error }}</p>{% endif %}
+  {% call confirm_box("This will be sent to " ~ job.company_name) %}
+    <p><strong>{{ job.title }}</strong></p>
+    <p>Shared: your name, your skills, your cover note.</p>
+    <p>Not shared: your resume, your email address, your other applications.</p>
+    <form method="post">
+      {{ csrf_field() }}
+      {{ textarea_field("cover_note", "Cover note", cover_note, error) }}
+      {{ button("Submit application") }}
+      {{ link_button("Back to job", "/jobs/" ~ job.id) }}
+    </form>
+  {% endcall %}
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import empty_state, badge %}
+{% block title %}My applications · Keystone{% endblock %}
+{% block content %}
+  <header class="page-header"><h1>My applications</h1></header>
+  {% if not applications %}
+    {{ empty_state("You have not applied to any jobs yet.", "See recommendations", "/candidate/recommendations") }}
+  {% else %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Job</th><th>Company</th><th>Applied (UTC)</th><th>Status</th><th>Interview booking</th></tr></thead>
+        <tbody>
+          {% for application in applications %}
+            <tr>
+              <td><a href="/candidate/applications/{{ application.id }}">{{ application.job_title }}</a></td>
+              <td>{{ application.company_name }}</td>
+              <td>{{ application.created_at }}</td>
+              <td>{{ badge(labels[application.status], badge_tones[application.status]) }}</td>
+              <td>{% if application.booking %}{{ application.booking.starts_at }} to {{ application.booking.ends_at }} UTC{% else %}Not booked{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+{% endblock %}
