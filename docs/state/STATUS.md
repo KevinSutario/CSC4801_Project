@@ -41,7 +41,7 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T18 | - | DESCOPED | - | D22: activity log + Today widgets cut (outside brief, 1-week timeline); blocks nothing |
 | T06 | 3 | MERGED | - | merged into dev at 96408a1 (--no-ff); owner P2; review PASS (reviews/T06.md, careful); authorization sweep FP-AUTH-3/FP-SEC-1 over all 14 id-routes; NO holes found, no Bxx needed |
 | T19 | 4 | MERGED | - | merged into dev at e47e5e0 (--no-ff); owner P3; review PASS (reviews/T19.md, careful); seed demo data (5 users, 3 jobs, 4 statuses) via real services + --reset; seed(app) exposed. Unblocks T20 |
-| T20 | 4 | TODO | - | after phase 3; owner P2 |
+| T20 | 4 | MERGED | - | merged into dev at fcc7450 (--no-ff); owner P2; review PASS (reviews/T20.md); Dockerfile + wsgi + first-start seed; --release gate 225 passed 0 skips. NOTE: docker build/run not run in review sandbox — run once before Phase-4 gate |
 | T21 | 4 | TODO | - | after T19, T20; owner P1 |
 | T22 | 5 | TODO | - | after phase 4; all three |
 
@@ -50,7 +50,9 @@ Phase 3 COMPLETE: T13, T14, T15, T16, T17, T06 all MERGED on dev. 219 passed, 0 
 sweep (T06) found no holes. Next: the **Phase-3 gate** (P2) — check.py + check_contracts.py pass,
 Phase-3 FP-* (FP-CAN-2, FP-CAN-3, FP-EMP-3, FP-SCHED-2, FP-SCHED-3, FP-AUTH-3, FP-SEC-1) each have a
 test, then merge dev->main and tag phase-3. (phase-1, phase-2 tags already on main.)
-After that: Phase 4 — T19 (seed data, P3), T20 (Docker, P2), then T21 (docs, P1). Phase 5: T22 self-audit.
+Phase 4: T19 (P3) and T20 (P2) MERGED. Only **T21 (README/SPEC/INSTALL, P1)** remains — needs T19+T20
+(both done). After T21, Phase-4 gate (P2): check.py --release + fresh-clone docker build/run + no
+empty doc sections, then merge dev->main, tag phase-4. Phase 5: T22 self-audit (all three).
 Note: the Phase-1 gate (merge dev->main, tag phase-1) should be confirmed — verify main + tag exist.
 Skeleton freeze applies from Phase 1 onward: app/__init__.py, db.py, schema.sql, security.py,
 audit.py, base.html, components/*, conftest.py — only a CCxx (P2) may touch these.
