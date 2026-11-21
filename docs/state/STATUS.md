@@ -45,6 +45,19 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T21 | 4 | MERGED | - | merged into dev at 0cd0e5c (--no-ff); owner P1; review PASS (reviews/T21.md, careful); README+SPEC+INSTALL, no empty sections, all 30 cited test names verified to exist; --release gate green |
 | T22 | 5 | TODO | - | after phase 4; all three |
 
+## T22 self-audit (Phase 5) — result
+Four independent audits against main/dev (security, functional, performance, delivery):
+- Performance: no N+1; all list/scoring paths <2ms at 200 rows (target 1s); indexes used.
+- Functional: no MUST violations; all FP-* match the brief (floor formula, tie-breaks, apply-once,
+  4 statuses, booking 5 conditions, exact "Slot already booked", every job listed).
+- Delivery: INSTALL/README/SPEC/Dockerfile accurate; all 30 cited test names exist.
+- Security: ONE confirmed hole — login rate limit bypassable by rotating IP. Fixed as **B5**
+  (per-email + per-IP keys, merged e0919f1). No xfail left; no open Bxx.
+Accepted non-bugs (documented, not MUST violations): interview slots don't block job deletion
+(D13 — a booked slot implies a counted interviewing application); unauthenticated POST returns 403
+(CSRF before auth; brief allows 401-or-redirect and GET redirects).
+T22 gate: check.py --release passes, no open Bxx, no xfail. Phase 5 complete pending main tag.
+
 ## Running now
 Phase 3 COMPLETE: T13, T14, T15, T16, T17, T06 all MERGED on dev. 219 passed, 0 skips. The authz
 sweep (T06) found no holes. Next: the **Phase-3 gate** (P2) — check.py + check_contracts.py pass,
