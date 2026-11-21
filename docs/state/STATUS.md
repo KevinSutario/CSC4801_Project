@@ -40,7 +40,7 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T17 | 3 | MERGED | - | merged into dev at f0ee89c (--no-ff); owner P3; review PASS (reviews/T17.md, careful); booking conflict contract + concurrency; FP-SCHED-3 (BEGIN IMMEDIATE + unique index, 409 "Slot already booked", booking.conflict audit) |
 | T18 | - | DESCOPED | - | D22: activity log + Today widgets cut (outside brief, 1-week timeline); blocks nothing |
 | T06 | 3 | MERGED | - | merged into dev at 96408a1 (--no-ff); owner P2; review PASS (reviews/T06.md, careful); authorization sweep FP-AUTH-3/FP-SEC-1 over all 14 id-routes; NO holes found, no Bxx needed |
-| T19 | 4 | TODO | - | after phase 3; owner P3 |
+| T19 | 4 | MERGED | - | merged into dev at e47e5e0 (--no-ff); owner P3; review PASS (reviews/T19.md, careful); seed demo data (5 users, 3 jobs, 4 statuses) via real services + --reset; seed(app) exposed. Unblocks T20 |
 | T20 | 4 | TODO | - | after phase 3; owner P2 |
 | T21 | 4 | TODO | - | after T19, T20; owner P1 |
 | T22 | 5 | TODO | - | after phase 4; all three |
