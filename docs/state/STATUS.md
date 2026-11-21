@@ -51,12 +51,14 @@ sweep (T06) found no holes. Next: the **Phase-3 gate** (P2) — check.py + check
 Phase-3 FP-* (FP-CAN-2, FP-CAN-3, FP-EMP-3, FP-SCHED-2, FP-SCHED-3, FP-AUTH-3, FP-SEC-1) each have a
 test, then merge dev->main and tag phase-3. (phase-1, phase-2 tags already on main.)
 Phase 4 cards all MERGED: T19 (P3), T20 (P2), T21 (P1). Phase-4 gate (P2) in progress:
-check.py --release PASSES (225, 0 skips) and docs have no empty sections — DONE. Remaining gate
-item: fresh-clone `docker build`/`docker run` + sign in as each demo account, on a machine with
-Docker (handed to P1; P1 reported it "doesn't run" — P2 verified the code runs via a non-Docker
-container-style launch: GET / and /auth/login both 200, first-start seeds 5 users, so the likely
-cause is P1's Docker env, not a code bug — awaiting P1's exact error). After that passes: merge
-dev->main, tag phase-4. Phase 5: T22 self-audit (all three).
+Earlier check.py --release passed (225, 0 skips), and docs have no empty sections. Docker testing
+found B4 (PermissionError on /app/instance: container runs as student, /app root-owned, create_app
+always makes instance_path). Fixed in the Dockerfile and MERGED into dev at fb4bb18 (reviews/B4.md);
+release gate still green (225, 0 skips). The user rebuilt and confirmed the container serves and a
+demo login works. Before tagging phase-4, still recommended: a FRESH-CLONE build/run and sign-in as
+all five demo accounts (release checklist item 2). Then: merge dev->main, tag phase-4.
+Phase 5: T22 self-audit (all three).
+Phase 5: T22 self-audit (all three).
 Note: the Phase-1 gate (merge dev->main, tag phase-1) should be confirmed — verify main + tag exist.
 Skeleton freeze applies from Phase 1 onward: app/__init__.py, db.py, schema.sql, security.py,
 audit.py, base.html, components/*, conftest.py — only a CCxx (P2) may touch these.
