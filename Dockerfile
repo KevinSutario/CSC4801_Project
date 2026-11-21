@@ -16,7 +16,9 @@ COPY --chown=student:student . .
 ENV DATABASE=/app/data/keystone.sqlite3 \
     UPLOAD_DIR=/app/data/uploads \
     PORT=8080
-RUN mkdir -p /app/data && chown -R student:student /app/data
+# /app is owned by root (from WORKDIR); create_app() always makes app.instance_path
+# (/app/instance), so that dir and the data dir must be writable by the runtime user.
+RUN mkdir -p /app/data /app/instance && chown -R student:student /app/data /app/instance
 USER student
 
 EXPOSE 8080
