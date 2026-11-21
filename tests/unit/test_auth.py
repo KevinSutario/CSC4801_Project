@@ -225,3 +225,46 @@ def test_signed_in_user_opening_register_is_redirected(client, conn):
     resp = client.get("/auth/register")
     assert resp.status_code == 302
     assert resp.headers["Location"].endswith("/")
+
+
+def test_distributed_brute_force_is_blocked_per_email(client, conn):
+    """B5: 5 wrong attempts on one email from DIFFERENT IPs must lock it (per-email limit).
+
+    Before the fix the limiter keyed on email|ip, so rotating the IP gave a fresh bucket and the
+    6th attempt still returned 400. The per-email key must block it with 429.
+    """
+    _register_form(client, email="victim@example.com")
+    client.post("/auth/logout", data={"csrf_token": _token(client)})
+    # five wrong guesses, each from a different source IP
+    for i in range(5):
+        resp = client.post(
+            "/auth/login",
+            data={"email": "victim@example.com", "password": "wrong", "csrf_token": _token(client)},
+            environ_base={"REMOTE_ADDR": f"10.0.0.{i}"},
+        )
+        assert resp.status_code == 400
+    # a sixth attempt from yet another new IP must be blocked by the per-email limit
+    resp = client.post(
+        "/auth/login",
+        data={"email": "victim@example.com", "password": "wrong", "csrf_token": _token(client)},
+        environ_base={"REMOTE_ADDR": "10.0.0.99"},
+    )
+    assert resp.status_code == 429
+
+
+def test_rate_limit_is_also_per_ip(client, conn):
+    """B5: one IP hammering many different emails must also lock on the per-IP limit."""
+    for i in range(5):
+        resp = client.post(
+            "/auth/login",
+            data={"email": f"user{i}@example.com", "password": "wrong",
+                  "csrf_token": _token(client)},
+            environ_base={"REMOTE_ADDR": "203.0.113.7"},
+        )
+        assert resp.status_code == 400
+    resp = client.post(
+        "/auth/login",
+        data={"email": "fresh@example.com", "password": "wrong", "csrf_token": _token(client)},
+        environ_base={"REMOTE_ADDR": "203.0.113.7"},
+    )
+    assert resp.status_code == 429
