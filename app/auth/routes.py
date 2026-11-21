@@ -75,16 +75,21 @@ def login():
         conn = get_db()
         email = request.form.get("email", "")
         password = request.form.get("password", "")
-        key = login_key(email, request.remote_addr or "")
-        if is_login_blocked(key):
+        # Two independent limits (04-AUTH-SECURITY: "per email AND per IP"): one keyed on the
+        # email alone, one on the IP alone, so rotating the IP cannot bypass the per-email cap.
+        email_key = login_key(email, "")
+        ip_key = login_key("", request.remote_addr or "")
+        if is_login_blocked(email_key) or is_login_blocked(ip_key):
             return render_template("auth/login.html", error=_LOCKED_MSG, email=email), 429
         user = service.authenticate(conn, email, password)
         if user is None:
-            record_failed_login(key)
+            record_failed_login(email_key)
+            record_failed_login(ip_key)
             with transaction(conn):
                 audit.log_event(conn, None, "user.login_failed", "user", None)
             return render_template("auth/login.html", error=_BAD_CREDS_MSG, email=email), 400
-        reset_login_failures(key)
+        reset_login_failures(email_key)
+        reset_login_failures(ip_key)
         _sign_in(user)
         with transaction(conn):
             audit.log_event(conn, user["id"], "user.login", "user", user["id"])
