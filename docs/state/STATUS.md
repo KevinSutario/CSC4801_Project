@@ -40,9 +40,9 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T17 | 3 | MERGED | - | merged into dev at f0ee89c (--no-ff); owner P3; review PASS (reviews/T17.md, careful); booking conflict contract + concurrency; FP-SCHED-3 (BEGIN IMMEDIATE + unique index, 409 "Slot already booked", booking.conflict audit) |
 | T18 | - | DESCOPED | - | D22: activity log + Today widgets cut (outside brief, 1-week timeline); blocks nothing |
 | T06 | 3 | MERGED | - | merged into dev at 96408a1 (--no-ff); owner P2; review PASS (reviews/T06.md, careful); authorization sweep FP-AUTH-3/FP-SEC-1 over all 14 id-routes; NO holes found, no Bxx needed |
-| T19 | 4 | TODO | - | after phase 3; owner P3 |
-| T20 | 4 | TODO | - | after phase 3; owner P2 |
-| T21 | 4 | TODO | - | after T19, T20; owner P1 |
+| T19 | 4 | MERGED | - | merged into dev at e47e5e0 (--no-ff); owner P3; review PASS (reviews/T19.md, careful); seed demo data (5 users, 3 jobs, 4 statuses) via real services + --reset; seed(app) exposed. Unblocks T20 |
+| T20 | 4 | MERGED | - | merged into dev at fcc7450 (--no-ff); owner P2; review PASS (reviews/T20.md); Dockerfile + wsgi + first-start seed; --release gate 225 passed 0 skips. NOTE: docker build/run not run in review sandbox — run once before Phase-4 gate |
+| T21 | 4 | MERGED | - | merged into dev at 0cd0e5c (--no-ff); owner P1; review PASS (reviews/T21.md, careful); README+SPEC+INSTALL, no empty sections, all 30 cited test names verified to exist; --release gate green |
 | T22 | 5 | TODO | - | after phase 4; all three |
 
 ## Running now
@@ -50,7 +50,15 @@ Phase 3 COMPLETE: T13, T14, T15, T16, T17, T06 all MERGED on dev. 219 passed, 0 
 sweep (T06) found no holes. Next: the **Phase-3 gate** (P2) — check.py + check_contracts.py pass,
 Phase-3 FP-* (FP-CAN-2, FP-CAN-3, FP-EMP-3, FP-SCHED-2, FP-SCHED-3, FP-AUTH-3, FP-SEC-1) each have a
 test, then merge dev->main and tag phase-3. (phase-1, phase-2 tags already on main.)
-After that: Phase 4 — T19 (seed data, P3), T20 (Docker, P2), then T21 (docs, P1). Phase 5: T22 self-audit.
+Phase 4 cards all MERGED: T19 (P3), T20 (P2), T21 (P1). Phase-4 gate (P2) in progress:
+Earlier check.py --release passed (225, 0 skips), and docs have no empty sections. Docker testing
+found B4 (PermissionError on /app/instance: container runs as student, /app root-owned, create_app
+always makes instance_path). Fixed in the Dockerfile and MERGED into dev at fb4bb18 (reviews/B4.md);
+release gate still green (225, 0 skips). The user rebuilt and confirmed the container serves and a
+demo login works. Before tagging phase-4, still recommended: a FRESH-CLONE build/run and sign-in as
+all five demo accounts (release checklist item 2). Then: merge dev->main, tag phase-4.
+Phase 5: T22 self-audit (all three).
+Phase 5: T22 self-audit (all three).
 Note: the Phase-1 gate (merge dev->main, tag phase-1) should be confirmed — verify main + tag exist.
 Skeleton freeze applies from Phase 1 onward: app/__init__.py, db.py, schema.sql, security.py,
 audit.py, base.html, components/*, conftest.py — only a CCxx (P2) may touch these.
