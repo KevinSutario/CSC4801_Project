@@ -1,10 +1,14 @@
 """Employer applicant review requirement tests (FP-EMP-3). Owned by T15."""
 
+import io
+
 import pytest
+from werkzeug.datastructures import FileStorage
 
 from app.applications import review_service
 from app.applications.statuses import STATUSES
-from app.errors import Forbidden, ValidationError
+from app.candidates import resume_service
+from app.errors import Forbidden, NotFound, ValidationError
 from app.jobs import service as jobs_service
 
 _EXPECTED_KEYS = {
@@ -131,3 +135,69 @@ def test_list_applicants_fixed_query_count(
     # Fixed regardless of applicant count: get_owned_job, job_skills, applications,
     # candidate_skills, bookings.
     assert len(selects) <= 5
+
+
+_VALID_PDF = b"%PDF-1.4\napplicant demo CV\n%%EOF\n"
+
+
+def _upload_cv(conn, candidate_id, data=_VALID_PDF, name="cv.pdf"):
+    resume_service.save_resume_file(
+        conn, candidate_id,
+        FileStorage(stream=io.BytesIO(data), filename=name, content_type="application/pdf"),
+    )
+
+
+def test_emp_3_employer_views_own_applicant_resume(
+    conn, client, make_employer, make_company, make_candidate, make_application, login_as,
+):
+    # T24, encouraged/ungraded (D23). Employer A owns the job; a candidate with a CV applies.
+    emp_a, jid = _job_with_skills(conn, make_employer, make_company)
+    with_cv = make_candidate(email="withcv@example.com", name="Has CV", skills=("python",))
+    no_cv = make_candidate(email="nocv@example.com", name="No CV", skills=("python",))
+    app_with = make_application(with_cv, jid)
+    app_without = make_application(no_cv, jid)
+    _upload_cv(conn, with_cv)
+
+    # Employer B owns a different job/company (used for the ownership check).
+    emp_b = make_employer(email="empb@example.com")
+    make_company(emp_b, name="Rival Co")
+
+    # Graded FP-EMP-3 is untouched: the list_applicants dict keeps exactly its T15 keys.
+    rows = review_service.list_applicants(conn, emp_a, jid)
+    for r in rows:
+        assert set(r.keys()) == _EXPECTED_KEYS
+        assert "resume_id" not in r
+    # The link-gating helper flags only the applicant who uploaded a CV.
+    cv_ids = review_service.candidates_with_resume_file(conn, jid)
+    assert cv_ids == {with_cv}
+
+    # Service: owner gets the file (row + resolved path); wrong owner Forbidden; no file NotFound;
+    # missing application NotFound (ownership checked before file existence).
+    resolved = review_service.resolve_applicant_resume(conn, emp_a, app_with)
+    assert resolved["content_type"] == "application/pdf"
+    assert resolved["original_name"] == "cv.pdf"
+    with pytest.raises(Forbidden):
+        review_service.resolve_applicant_resume(conn, emp_b, app_with)
+    with pytest.raises(NotFound):
+        review_service.resolve_applicant_resume(conn, emp_a, app_without)
+    with pytest.raises(NotFound):
+        review_service.resolve_applicant_resume(conn, emp_a, 999999)
+
+    # Route: employer A downloads (200 + application/pdf + the bytes).
+    login_as(client, emp_a, "employer")
+    ok = client.get(f"/employer/applications/{app_with}/resume")
+    assert ok.status_code == 200
+    assert ok.mimetype == "application/pdf"
+    assert ok.data == _VALID_PDF
+    ok.close()
+    # owned application whose candidate has no CV -> 404; missing application -> 404
+    assert client.get(f"/employer/applications/{app_without}/resume").status_code == 404
+    assert client.get("/employer/applications/999999/resume").status_code == 404
+
+    # Employer B (owns a different job) -> 403; a candidate -> 403 (role gate); the owner-only
+    # direct resume route (T23) is unaffected: B still cannot read it either.
+    login_as(client, emp_b, "employer")
+    assert client.get(f"/employer/applications/{app_with}/resume").status_code == 403
+    login_as(client, with_cv, "candidate")
+    assert client.get(f"/employer/applications/{app_with}/resume").status_code == 403
+    assert client.get(f"/candidates/{with_cv}/resume/file").status_code == 200  # own direct URL ok
