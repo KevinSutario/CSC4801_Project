@@ -180,6 +180,31 @@ shows the current text in a textarea, POST replaces it); `candidates.resume_view
 `/candidates/<int:candidate_id>/resume` (`@login_required`, any role: the owner sees their text,
 anyone else gets 403 through `get_resume_for_viewer`)
 
+CV file (T23, additive — the text resume above is unchanged; D23). One PDF per candidate, stored on
+disk under `UPLOAD_DIR`, metadata in `resume_files` (see 03-DATA-MODEL.md). Audit reuses the existing
+`resume.update` action (no new audit action; `audit.py` stays frozen).
+```python
+def get_resume_file(conn: Conn, owner_id: int) -> dict | None
+    # keys: owner_id, stored_name, original_name, content_type, size_bytes, updated_at; None if no file
+def save_resume_file(conn: Conn, owner_id: int, file_storage) -> None
+    # ValidationError({"file": ...}) if not a PDF, empty, or over MAX_UPLOAD_MB; write to UPLOAD_DIR
+    # under a fresh server-generated stored_name (never the uploaded name); delete any previous disk
+    # file; upsert the row; audit resume.update ("file added: <original_name>")
+def delete_resume_file(conn: Conn, owner_id: int) -> None
+    # remove the row and the disk file if present; audit resume.update ("file removed"); no-op-safe
+def get_resume_file_for_viewer(conn: Conn, viewer_id: int, candidate_id: int) -> dict
+    # Forbidden unless viewer_id == candidate_id (checked BEFORE existence, D10); NotFound if no file;
+    # else the row plus the absolute path under UPLOAD_DIR
+def resolve_resume_file(conn: Conn, candidate_id: int) -> dict | None
+    # authz-free lookup for trusted server callers (T24 does its own ownership check first); row +
+    # path, or None. Never a route; never called with raw viewer input.
+RESUME_FILE_MAX_MB: int   # = Config.MAX_UPLOAD_MB (2); PDF only
+```
+`app/candidates/routes_resume.py` (T23): `candidates.resume_file` POST `/candidate/resume/file`
+(upload, candidate only); `candidates.resume_file_delete` POST `/candidate/resume/file/delete`
+(candidate only); `candidates.resume_file_view` GET `/candidates/<int:candidate_id>/resume/file`
+(`@login_required`, owner-only via `get_resume_file_for_viewer`, 403 otherwise, 404 owner-with-no-file)
+
 ### employers (T09)
 `app/employers/service.py`
 ```python
@@ -263,12 +288,20 @@ def list_applicants(conn: Conn, employer_id: int, job_id: int) -> list[dict]
 def set_status(conn: Conn, employer_id: int, application_id: int, new_status: str) -> None
     # any status in STATUSES other than the current one (ValidationError({"status": ...}) otherwise);
     # never touches bookings
+def resolve_applicant_resume(conn: Conn, employer_id: int, application_id: int) -> dict   # T24, ungraded
+    # load application -> job -> company; Forbidden unless company.owner_id == employer_id (ownership
+    # before existence); NotFound if the application is missing or the candidate has no CV file; else
+    # the file row + absolute path (via resume_service.resolve_resume_file). list_applicants keys are
+    # unchanged (no resume_id; FP-EMP-3/D11 stays graded-as-is).
 ```
 `app/applications/routes_candidate.py` (T14): `applications.confirm` GET and
 `applications.submit` POST `/jobs/<int:job_id>/apply`; `applications.mine` GET `/candidate/applications`
 `app/applications/routes_employer.py` (T15): `applications.applicants` GET
 `/employer/jobs/<int:job_id>/applicants`; `applications.confirm_status` GET and
-`applications.set_status` POST `/employer/applications/<int:application_id>/status`
+`applications.set_status` POST `/employer/applications/<int:application_id>/status`.
+T24 adds: `applications.applicant_resume` GET `/employer/applications/<int:application_id>/resume`
+(`@role_required("employer")`, streams the applicant's CV PDF if the employer owns the applied-to
+job; 403 otherwise, 404 if no file — encouraged, ungraded, D23)
 
 ### scheduling (T12 slots, T16 and T17 booking)
 `app/timeutil.py` (T12, pure)
@@ -341,7 +374,7 @@ Route modules start as stubs (T01): `from . import bp` and nothing else. The own
 | `tests/unit/test_audit.py` | T02 | none (extra) |
 | `tests/unit/test_auth.py` | T04 (placeholders), T05, then T06 | `test_fp_auth_1_registration_and_session_lifecycle`, `test_fp_auth_1_invalid_registration`, `test_fp_auth_2_salted_hash_and_password_verification`, `test_fp_auth_3_authorization_and_missing_object`, `test_fp_sec_2_sql_metacharacters_stay_bound` |
 | `tests/unit/test_can_profile.py` | T07 | none (extra) |
-| `tests/unit/test_can_resume.py` | T08 | `test_fp_can_1_profile_and_private_resume_rules` |
+| `tests/unit/test_can_resume.py` | T08, then T23 | `test_fp_can_1_profile_and_private_resume_rules`, `test_fp_can_1_cv_file_upload_and_private_download` |
 | `tests/unit/test_emp_company.py` | T09 | `test_fp_emp_1_company_profile`, `test_fp_sec_3_script_tag_is_escaped` |
 | `tests/unit/test_emp_jobs.py` | T10 | `test_fp_emp_2_job_validation_and_deletion` |
 | `tests/unit/test_matching.py` | T11 | `test_fp_match_1_examples_normalization_and_floor`, `test_fp_match_1_both_tie_breakers` |
@@ -349,7 +382,7 @@ Route modules start as stubs (T01): `from . import bp` and nothing else. The own
 | `tests/unit/test_sched_slots.py` | T12 | `test_fp_sched_1_slot_creation_timezones_and_deletion`, `test_fp_sched_1_invalid_slots` |
 | `tests/unit/test_can_recommend.py` | T13 | `test_fp_can_2_recommendations_preserve_fields_and_rank_all_jobs` |
 | `tests/unit/test_can_apply.py` | T14 | `test_fp_can_3_pending_duplicate_and_application_owner` |
-| `tests/unit/test_emp_applicants.py` | T15 | `test_fp_emp_3_applicant_fields_order_status_and_role` |
+| `tests/unit/test_emp_applicants.py` | T15, then T24 | `test_fp_emp_3_applicant_fields_order_status_and_role`, `test_emp_3_employer_views_own_applicant_resume` |
 | `tests/unit/test_sched_booking.py` | T16, then T17 | `test_fp_sched_2_eligible_booking`, `test_fp_sched_2_ineligible_booking`, `test_fp_sched_3_conflict_contract` |
 | `tests/unit/test_authz_sweep.py` | T06 | `test_fp_sec_1_object_access_boundaries` |
 

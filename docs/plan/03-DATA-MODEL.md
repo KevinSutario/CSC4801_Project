@@ -56,6 +56,15 @@ CREATE TABLE resumes (
   updated_at  TEXT NOT NULL
 );
 
+CREATE TABLE resume_files (
+  owner_id      INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  stored_name   TEXT NOT NULL,
+  original_name TEXT NOT NULL,
+  content_type  TEXT NOT NULL,
+  size_bytes    INTEGER NOT NULL,
+  updated_at    TEXT NOT NULL
+);
+
 CREATE TABLE companies (
   id           INTEGER PRIMARY KEY,
   owner_id     INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
@@ -142,6 +151,7 @@ CREATE INDEX ix_audit_actor ON audit_log (actor_id, created_at);
 users (candidate) 1 ─ 1 candidate_profiles
 users (candidate) 1 ─ * candidate_skills * ─ 1 skills
 users (candidate) 1 ─ 0..1 resumes
+users (candidate) 1 ─ 0..1 resume_files
 users (employer)  1 ─ 1 companies 1 ─ * jobs 1 ─ * job_skills * ─ 1 skills
 jobs 1 ─ * applications * ─ 1 users (candidate)
 users (employer) 1 ─ * interview_slots 1 ─ 0..1 bookings 1 ─ 1 applications

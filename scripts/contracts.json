@@ -305,5 +305,44 @@
   "T17": {
     "names": [],
     "endpoints": []
+  },
+  "T23": {
+    "names": [
+      "app.candidates.resume_service:get_resume_file",
+      "app.candidates.resume_service:save_resume_file",
+      "app.candidates.resume_service:delete_resume_file",
+      "app.candidates.resume_service:get_resume_file_for_viewer",
+      "app.candidates.resume_service:resolve_resume_file",
+      "app.candidates.resume_service:RESUME_FILE_MAX_MB"
+    ],
+    "endpoints": [
+      [
+        "candidates.resume_file",
+        "POST",
+        "/candidate/resume/file"
+      ],
+      [
+        "candidates.resume_file_delete",
+        "POST",
+        "/candidate/resume/file/delete"
+      ],
+      [
+        "candidates.resume_file_view",
+        "GET",
+        "/candidates/<int:candidate_id>/resume/file"
+      ]
+    ]
+  },
+  "T24": {
+    "names": [
+      "app.applications.review_service:resolve_applicant_resume"
+    ],
+    "endpoints": [
+      [
+        "applications.applicant_resume",
+        "GET",
+        "/employer/applications/<int:application_id>/resume"
+      ]
+    ]
   }
 }
