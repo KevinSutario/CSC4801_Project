@@ -35,6 +35,15 @@ CREATE TABLE resumes (
   updated_at  TEXT NOT NULL
 );
 
+CREATE TABLE resume_files (
+  owner_id      INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  stored_name   TEXT NOT NULL,
+  original_name TEXT NOT NULL,
+  content_type  TEXT NOT NULL,
+  size_bytes    INTEGER NOT NULL,
+  updated_at    TEXT NOT NULL
+);
+
 CREATE TABLE companies (
   id           INTEGER PRIMARY KEY,
   owner_id     INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
