@@ -44,6 +44,10 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T20 | 4 | MERGED | - | merged into dev at fcc7450 (--no-ff); owner P2; review PASS (reviews/T20.md); Dockerfile + wsgi + first-start seed; --release gate 225 passed 0 skips. NOTE: docker build/run not run in review sandbox — run once before Phase-4 gate |
 | T21 | 4 | MERGED | - | merged into dev at 0cd0e5c (--no-ff); owner P1; review PASS (reviews/T21.md, careful); README+SPEC+INSTALL, no empty sections, all 30 cited test names verified to exist; --release gate green |
 | T22 | 5 | TODO | - | after phase 4; all three |
+| CC02 | 6 | TODO | - | P2; resume_files table + CV-file contracts (schema frozen → CC card); unblocks T23/T24/T25 (D23) |
+| T23 | 6 | TODO | - | P1; candidate CV file upload alongside text resume; owner-only download (graded FP-CAN-1); needs CC02 |
+| T24 | 6 | TODO | - | P2; employer views own applicant's CV (encouraged, UNGRADED); needs CC02+T23; must not regress T15/T23 |
+| T25 | 6 | TODO | - | P3; seed a demo CV via real save_resume_file; needs T23 |
 
 ## T22 self-audit (Phase 5) — result
 Four independent audits against main/dev (security, functional, performance, delivery):
@@ -72,6 +76,18 @@ demo login works. Before tagging phase-4, still recommended: a FRESH-CLONE build
 all five demo accounts (release checklist item 2). Then: merge dev->main, tag phase-4.
 Phase 5: T22 self-audit (all three).
 Phase 5: T22 self-audit (all three).
+
+## Phase 6 — CV file + employer resume view (added 2026-11-24, D23)
+New post-submission requirements: a real CV **file** input for candidates, and a place for employers
+to see submissions. Four cards, strictly ordered by the schema freeze + a service dependency:
+**CC02 (P2)** → **T23 (P1)** → { **T24 (P2)**, **T25 (P3)** }. CC02 adds the `resume_files` table +
+contracts (it is a CC card because `schema.sql`/contracts froze after Phase 1). T23 builds the
+candidate upload + owner-only download (graded FP-CAN-1: direct URL is owner-only, 403 otherwise).
+T24 adds the employer "View CV" link for its own applicants (encouraged, UNGRADED — not a valid
+audit finding); it must not regress the graded T15 fields or the T23 owner-only URL. T25 seeds a demo
+CV through the real service. Audit uses the existing `resume.update` action (frozen `audit.py`
+untouched). Cards: docs/tasks/CC02.md, T23.md, T24.md, T25.md.
+
 Note: the Phase-1 gate (merge dev->main, tag phase-1) should be confirmed — verify main + tag exist.
 Skeleton freeze applies from Phase 1 onward: app/__init__.py, db.py, schema.sql, security.py,
 audit.py, base.html, components/*, conftest.py — only a CCxx (P2) may touch these.
