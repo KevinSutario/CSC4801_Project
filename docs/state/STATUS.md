@@ -45,8 +45,8 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T21 | 4 | MERGED | - | merged into dev at 0cd0e5c (--no-ff); owner P1; review PASS (reviews/T21.md, careful); README+SPEC+INSTALL, no empty sections, all 30 cited test names verified to exist; --release gate green |
 | T22 | 5 | TODO | - | after phase 4; all three |
 | CC02 | 6 | TODO | - | P2; resume_files table + CV-file contracts (schema frozen → CC card); unblocks T23/T24/T25 (D23) |
-| T23 | 6 | TODO | - | P1; candidate CV file upload alongside text resume; owner-only download (graded FP-CAN-1); needs CC02 |
-| T24 | 6 | TODO | - | P2; employer views own applicant's CV (encouraged, UNGRADED); needs CC02+T23; must not regress T15/T23 |
+| T23 | 6 | MERGED | - | merged into dev at 0a3bc86 (--no-ff); owner P1; review PASS (reviews/T23.md, careful); gate 228 passed; CV file upload alongside text, owner-only download (403 before existence), traversal guard, 6 invalid-upload cases; reuses resume.update. Unblocks T24, T25 |
+| T24 | 6 | DOING | task/T24 | P2; employer views own applicant's CV (encouraged, UNGRADED); built, gate 229 passed; awaiting non-author review before merge. has_cv resolved WITHOUT a contract change (route passes cv_candidate_ids; list_applicants dict unchanged, D11 intact) |
 | T25 | 6 | TODO | - | P3; seed a demo CV via real save_resume_file; needs T23 |
 
 ## T22 self-audit (Phase 5) — result
@@ -87,6 +87,9 @@ T24 adds the employer "View CV" link for its own applicants (encouraged, UNGRADE
 audit finding); it must not regress the graded T15 fields or the T23 owner-only URL. T25 seeds a demo
 CV through the real service. Audit uses the existing `resume.update` action (frozen `audit.py`
 untouched). Cards: docs/tasks/CC02.md, T23.md, T24.md, T25.md.
+Progress: CC02 + T23 MERGED on dev (T23 careful review PASS, 228 passed). Remaining: T24 (P2) and
+T25 (P3), both unblocked now that T23's resume_service is on dev. T24 still carries the has_cv/D11
+open point. check_contracts will enforce T23's names once this MERGED row is pushed.
 
 Note: the Phase-1 gate (merge dev->main, tag phase-1) should be confirmed — verify main + tag exist.
 Skeleton freeze applies from Phase 1 onward: app/__init__.py, db.py, schema.sql, security.py,
