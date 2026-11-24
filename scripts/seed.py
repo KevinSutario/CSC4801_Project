@@ -37,26 +37,32 @@ def seed(app) -> None:
     Refuses (RuntimeError) when the database already has users; callers that
     own a reset (the --reset CLI below) delete and recreate the database first.
     """
-    conn = sqlite3.connect(
-        app.config["DATABASE"], isolation_level=None, detect_types=0
-    )
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    try:
-        _seed_with_connection(conn)
-    finally:
-        conn.close()
+    # Push our own app context: some seeded services need current_app (T25's
+    # save_resume_file reads UPLOAD_DIR and MAX_UPLOAD_MB from it), and callers
+    # such as wsgi.py's first-start seeding run outside any app context.
+    with app.app_context():
+        conn = sqlite3.connect(
+            app.config["DATABASE"], isolation_level=None, detect_types=0
+        )
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON")
+        try:
+            _seed_with_connection(conn)
+        finally:
+            conn.close()
 
 
 def _seed_with_connection(conn: sqlite3.Connection) -> None:
     # Imports stay inside the function: this module is imported by tests and
     # potentially by the app itself, so it must not import app.* at module
     # import time.
+    from werkzeug.datastructures import FileStorage
+
     from app.applications.review_service import set_status
     from app.applications.service import apply
     from app.auth.service import register
     from app.candidates.profile_service import save_profile
-    from app.candidates.resume_service import save_resume
+    from app.candidates.resume_service import save_resume, save_resume_file
     from app.employers.service import save_company
     from app.jobs.service import create_job
     from app.scheduling.slots import create_slot
@@ -85,6 +91,18 @@ def _seed_with_connection(conn: sqlite3.Connection) -> None:
     save_profile(conn, sofia, "Sofia Novak", "Systems programmer", "Berlin",
                  "Europe/Berlin", "Fictional demo candidate who loves Rust.", "Rust")
     save_resume(conn, meilin, "Demo resume. Fictional person.")
+
+    # Mei Lin also gets a demo CV file through the real T23 upload service
+    # (validation, UPLOAD_DIR storage, audit event), so the CV upload feature
+    # and the employer view are demonstrable on fresh demo data. The other
+    # candidates stay file-less on purpose (the "no CV" path).
+    fixture = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "fixtures", "demo_cv.pdf"
+    )
+    with open(fixture, "rb") as f:
+        save_resume_file(conn, meilin, FileStorage(
+            stream=f, filename="demo_cv.pdf", content_type="application/pdf"
+        ))
 
     # --- Employers, companies and jobs ------------------------------------
     daniel = register(conn, "daniel@demo.keystone", DEMO_PASSWORD, "employer",
