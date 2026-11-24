@@ -43,8 +43,25 @@ parallel, and puts the three shared-but-sequential Phase-1 tasks on whoever owns
 | T20 | Dockerfile, wsgi, start-up | **P2** | 4 |
 | T21 | README, SPEC.md, INSTALL.md | **P1** | 4 |
 | T22 | self-audit (review agents only) | all three | 5 |
+| CC02 | resume_files schema + CV-file contracts | **P2** | 6 |
+| T23 | candidate CV file upload (alongside text) | **P1** | 6 |
+| T24 | employer views own applicant's CV (ungraded) | **P2** | 6 |
+| T25 | seed a demo CV file | **P3** | 6 |
 
-Totals: P1 = 7 cards, P2 = 7 cards + CC01, P3 = 7 cards. Balanced.
+Totals: P1 = 8 cards, P2 = 8 cards + CC01 + CC02, P3 = 8 cards. Balanced.
+
+## Phase 6 — CV file + employer resume view (added 2026-11-24, D23)
+New post-submission requirements (CV file input; a place for employers to see submissions). The
+chain is strictly ordered because of the schema freeze and the service dependency:
+
+**CC02 (P2)** first — unfreezes `schema.sql`/contracts just long enough to add the `resume_files`
+table and register the T23/T24 names, then re-freezes. **T23 (P1)** builds the candidate upload,
+owner-only download and replace/remove on `resume_service.py` + its routes/template. Then two can run
+in parallel: **T24 (P2)** adds the employer "View CV" link scoped to its own applicants (ungraded),
+and **T25 (P3)** seeds a demo CV through the real `save_resume_file`. Grading note: the direct
+resume URL stays owner-only/403 (graded); the employer view is encouraged but ungraded and not a
+valid audit finding. Owns lists do not overlap (P1 = candidates/*, P2 = applications/* + the CC
+files, P3 = seed).
 
 ## Phase by phase
 

@@ -158,3 +158,23 @@ An agent may not change these. If one looks wrong, stop and report.
   blueprints; `activity.list` + `tests/unit/test_activity.py` removed from contracts and T04; T18
   removed from the Phase-3 map and the P1 lane; T17 and T06 no longer list T18 as a parallel peer.
 - Reversible: T18.md retains the full spec; re-add the blueprint and route to restore it.
+
+## D23: CV file upload + employer resume view (2026-11-24, Phase 6)
+- New requirements from Kevin + the 2026-11-24 course clarification: candidates get a real CV **file**
+  input, and employers get a place to see submissions. This **adds** to, and does not replace, the
+  D10 raw-text resume.
+- Graded vs ungraded (from the clarification): the **direct** resume URL/API stays owner-only, 403 for
+  everyone else — graded (FP-CAN-1). Employers viewing an applicant's resume is **encouraged but
+  ungraded** and is not a valid peer-audit finding. The FP-EMP-3 fields (identity, skills, score,
+  status, booking) are graded and already shipped in T15 — unchanged.
+- Decisions: (a) CV file is **additive** alongside the text resume; (b) **one PDF per candidate**,
+  stored **on disk** under the already-wired `UPLOAD_DIR`, metadata in a new `resume_files` table,
+  size ≤ `MAX_UPLOAD_MB` (2); (c) reuse the existing **`resume.update`** audit action so the frozen
+  `audit.py` is untouched; (d) the candidate's direct download route is owner-only (403 before
+  existence, like `resume_view`); the employer view is a **separate** `/employer/...` route scoped to
+  the employer's own job's applicants (T24).
+- Cards: **CC02** (P2) adds the table + contracts (schema is frozen, so it must be a CC card);
+  **T23** (P1) builds the candidate upload/download; **T24** (P2) adds the employer view link;
+  **T25** (P3) seeds a demo CV. Order: CC02 → T23 → {T24, T25}.
+- Reversible: the text resume and all graded behaviour are untouched; dropping T23/T24 leaves the
+  brief MUSTs intact.
