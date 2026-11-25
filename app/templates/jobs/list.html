@@ -18,6 +18,7 @@
             {% for skill in job.skills %}{{ badge(skill, "neutral") }}{% endfor %}
           </p>
           <p class="job-actions">
+            {{ link_button("View applicants", "/employer/jobs/" ~ job.id ~ "/applicants") }}
             {{ link_button("Edit", "/employer/jobs/" ~ job.id ~ "/edit") }}
             {{ link_button("Delete", "/employer/jobs/" ~ job.id ~ "/delete", kind="danger") }}
           </p>
