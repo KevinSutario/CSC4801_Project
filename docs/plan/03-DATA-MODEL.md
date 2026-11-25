@@ -116,6 +116,7 @@ CREATE TABLE interview_slots (
   ends_at      TEXT NOT NULL,      -- UTC
   created_tz   TEXT NOT NULL,      -- the IANA zone the employer entered it in
   created_at   TEXT NOT NULL,
+  interview_note TEXT NOT NULL DEFAULT '', -- optional location, link, or instructions
   CHECK (ends_at > starts_at)
 );
 
@@ -168,6 +169,8 @@ users 1 ─ * audit_log
   level.
 - `applications.job_id ON DELETE RESTRICT` is the backstop for the brief's 409-on-delete rule
   (FP-EMP-2): the service refuses first, the constraint stops a cascade if it somehow slips through.
+- Existing initialized databases add `interview_note` on startup. Existing slots and bookings keep
+  their IDs and times. An empty note is the default.
 
 ## Audit actions (fixed list)
 

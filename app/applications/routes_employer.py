@@ -32,10 +32,20 @@ def applicants(job_id: int):
     except Forbidden:
         abort(403)
     cv_candidate_ids = review_service.candidates_with_resume_file(conn, job_id)
+    interview_notes = {
+        row["application_id"]: row["interview_note"]
+        for row in conn.execute(
+            "SELECT b.application_id, s.interview_note"
+            " FROM bookings b JOIN interview_slots s ON s.id = b.slot_id"
+            " JOIN applications a ON a.id = b.application_id"
+            " WHERE a.job_id = ? AND s.employer_id = ? AND s.interview_note <> ''",
+            (job_id, g.user["id"]),
+        )
+    }
     return render_template(
         "applications/applicants.html", job_id=job_id, applicants=rows,
         labels=LABELS, badge_tones=_BADGE_TONES, statuses=STATUSES,
-        cv_candidate_ids=cv_candidate_ids,
+        cv_candidate_ids=cv_candidate_ids, interview_notes=interview_notes,
     )
 
 

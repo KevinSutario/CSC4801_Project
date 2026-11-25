@@ -16,7 +16,14 @@
               <td>{{ application.company_name }}</td>
               <td>{{ application.created_at }}</td>
               <td>{{ badge(labels[application.status], badge_tones[application.status]) }}</td>
-              <td>{% if application.booking %}{{ application.booking.starts_at }} to {{ application.booking.ends_at }} UTC{% else %}Not booked{% endif %}</td>
+              <td>
+                {% if application.booking %}
+                  {{ application.booking.starts_at }} to {{ application.booking.ends_at }} UTC<br>
+                  <a href="/candidate/applications/{{ application.id }}">Interview details</a>
+                {% else %}
+                  Not booked
+                {% endif %}
+              </td>
             </tr>
           {% endfor %}
         </tbody>

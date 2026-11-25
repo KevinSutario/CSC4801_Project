@@ -16,7 +16,7 @@ from app.errors import Conflict, Forbidden, NotFound, ValidationError
 
 
 def create_slot(conn: sqlite3.Connection, employer_id: int, date_str: str, start_str: str,
-                end_str: str, tz_name: str) -> int:
+                end_str: str, tz_name: str, *, interview_note: str = "") -> int:
     """Create the employer's slot from local values in tz_name. Returns the slot id."""
     errors: dict[str, str] = {}
 
@@ -64,8 +64,8 @@ def create_slot(conn: sqlite3.Connection, employer_id: int, date_str: str, start
     with transaction(conn):
         cursor = conn.execute(
             "INSERT INTO interview_slots (employer_id, starts_at, ends_at, created_tz,"
-            " created_at) VALUES (?, ?, ?, ?, ?)",
-            (employer_id, starts_at, ends_at, tz_name, now_iso()),
+            " created_at, interview_note) VALUES (?, ?, ?, ?, ?, ?)",
+            (employer_id, starts_at, ends_at, tz_name, now_iso(), interview_note.strip()),
         )
         slot_id = cursor.lastrowid
         audit.log_event(conn, employer_id, "slot.create", "slot", slot_id,
@@ -97,11 +97,15 @@ def delete_slot(conn: sqlite3.Connection, employer_id: int, slot_id: int) -> Non
 
 
 def list_slots_for_employer(conn: sqlite3.Connection, employer_id: int) -> list[dict]:
-    """The employer's slots with a booked bool, start ascending (one query)."""
+    """The employer's slots with notes and booked candidate details, start ascending."""
     rows = conn.execute(
-        "SELECT s.id, s.starts_at, s.ends_at, s.created_tz, s.created_at,"
-        " (b.id IS NOT NULL) AS booked"
+        "SELECT s.id, s.starts_at, s.ends_at, s.created_tz, s.created_at, s.interview_note,"
+        " (b.id IS NOT NULL) AS booked, u.display_name AS candidate_name,"
+        " j.id AS job_id, j.title AS job_title"
         " FROM interview_slots s LEFT JOIN bookings b ON b.slot_id = s.id"
+        " LEFT JOIN applications a ON a.id = b.application_id"
+        " LEFT JOIN jobs j ON j.id = a.job_id"
+        " LEFT JOIN users u ON u.id = a.candidate_id"
         " WHERE s.employer_id = ? ORDER BY s.starts_at ASC, s.id ASC",
         (employer_id,),
     ).fetchall()

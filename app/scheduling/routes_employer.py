@@ -46,10 +46,13 @@ def slots():
             "start": request.form.get("start", ""),
             "end": request.form.get("end", ""),
             "timezone": request.form.get("timezone", ""),
+            "interview_note": request.form.get("interview_note", ""),
         }
         try:
-            slots_service.create_slot(conn, g.user["id"], values["date"], values["start"],
-                                      values["end"], values["timezone"])
+            slots_service.create_slot(
+                conn, g.user["id"], values["date"], values["start"], values["end"],
+                values["timezone"], interview_note=values["interview_note"],
+            )
         except ValidationError as exc:
             listed = slots_service.list_slots_for_employer(conn, g.user["id"])
             return render_template("scheduling/slots.html", errors=exc.errors,
@@ -62,7 +65,8 @@ def slots():
     listed = slots_service.list_slots_for_employer(conn, g.user["id"])
     zone = _last_used_zone(conn)
     return render_template("scheduling/slots.html", errors={},
-                           form={"date": "", "start": "", "end": "", "timezone": zone},
+                           form={"date": "", "start": "", "end": "", "timezone": zone,
+                                 "interview_note": ""},
                            slot_list=listed, zones=zone_options(),
                            display_zone=zone, utc_to_local=timeutil.utc_to_local)
 

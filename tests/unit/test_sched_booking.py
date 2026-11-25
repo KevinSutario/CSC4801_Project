@@ -40,6 +40,7 @@ def world(conn, make_candidate, make_employer, make_job, make_application, make_
         "cand_b": cand_b,
         "emp_a": emp_a,
         "emp_b": emp_b,
+        "job_a": job_a,
         "app_a": make_application(cand_a, job_a, status="interviewing"),
         "app_a_pending": make_application(cand_a, job_a2, status="pending"),
         "app_b": make_application(cand_b, job_a, status="interviewing"),
@@ -137,6 +138,63 @@ def test_fp_sched_2_ineligible_booking(conn, world, make_booking, application_ke
     with pytest.raises(expected):
         service.book_slot(conn, w["cand_a"], application_id, slot_id)
     assert _count_bookings(conn) == before   # no new booking row on failure
+
+
+def test_interview_note_and_booked_candidate_are_visible_to_owners(
+    client, conn, world, login_as, csrf_post
+):
+    w = world
+    slots = "/employer/slots"
+    detail = f"/candidate/applications/{w['app_a']}"
+    applicants = f"/employer/jobs/{w['job_a']}/applicants"
+    location = "Room <301>, East Wing"
+    meeting_url = "https://meet.example.com/interview"
+    note = f"{location}\n{meeting_url}\njavascript:alert(1)"
+
+    login_as(client, w["emp_a"], "employer")
+    assert b'name="interview_note"' in client.get(slots).data
+    response = csrf_post(client, slots, {
+        "date": "2030-01-09", "start": "10:00", "end": "10:30", "timezone": "UTC",
+        "interview_note": f"  {note}  ",
+    })
+    assert response.status_code == 302
+    new_slot = conn.execute(
+        "SELECT id, interview_note FROM interview_slots WHERE starts_at = ?",
+        ("2030-01-09T10:00:00Z",),
+    ).fetchone()
+    assert new_slot["interview_note"] == note
+    confirm = f"{detail}/book/{new_slot['id']}"
+    assert b"Mei Lin Tan" not in client.get(slots).data
+
+    login_as(client, w["cand_a"], "candidate")
+    for page in (detail, confirm):
+        response = client.get(page)
+        assert response.status_code == 200
+        assert meeting_url.encode() not in response.data
+    assert csrf_post(client, confirm, {}).status_code == 302
+    response = client.get(detail)
+    assert b"Room &lt;301&gt;, East Wing" in response.data
+    assert location.encode() not in response.data
+    assert f'href="{meeting_url}"'.encode() in response.data
+    assert b'href="javascript:' not in response.data
+    assert b"Interview details" in client.get("/candidate/applications").data
+
+    login_as(client, w["cand_b"], "candidate")
+    assert client.get(detail).status_code == 403
+    assert meeting_url.encode() not in client.get(f"/candidate/applications/{w['app_b']}").data
+    login_as(client, w["emp_b"], "employer")
+    assert client.get(applicants).status_code == 403
+    response = client.get(slots)
+    assert b"Mei Lin Tan" not in response.data and meeting_url.encode() not in response.data
+
+    login_as(client, w["emp_a"], "employer")
+    for page in (slots, applicants):
+        response = client.get(page)
+        assert response.status_code == 200
+        assert b"Booked" in response.data and b"Mei Lin Tan" in response.data
+        assert f'href="{meeting_url}"'.encode() in response.data
+    assert b"Data Analyst" in client.get(slots).data
+    assert f'href="{applicants}"'.encode() in client.get(slots).data
 
 
 def test_employer_get_application_detail_is_403(client, world, login_as):

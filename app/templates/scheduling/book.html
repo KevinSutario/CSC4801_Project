@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "components/ui.html" import badge, empty_state, card %}
+{% from "scheduling/interview_note.html" import show_interview_note %}
 {% block title %}{{ application.job_title }} · Keystone{% endblock %}
 {% block content %}
   <header class="page-header"><h1>{{ application.job_title }}</h1></header>
@@ -20,6 +21,7 @@
         {{ utc_to_local(application.booking.ends_at, zone).strftime("%H:%M") }}
         ({{ zone }})
       </p>
+      {{ show_interview_note(application.booking.interview_note) }}
     {% endcall %}
   {% elif eligible %}
     {% call card("Book an interview (times in " ~ zone ~ ")") %}
