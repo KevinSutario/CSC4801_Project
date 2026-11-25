@@ -10,7 +10,7 @@
       <thead>
         <tr>
           <th>Candidate</th><th>Headline</th><th>Match</th><th>Skills</th>
-          <th>Status</th><th>Applied (UTC)</th><th>Interview</th><th>Actions</th>
+          <th>Status</th><th>Applied (UTC)</th><th>Interview</th><th>CV</th><th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -23,6 +23,7 @@
             <td>{{ badge(labels[a.status], badge_tones[a.status]) }}</td>
             <td>{{ a.applied_at }}</td>
             <td>{% if a.booking %}{{ a.booking.starts_at }} to {{ a.booking.ends_at }}{% else %}Not booked{% endif %}</td>
+            <td>{% if a.candidate_id in cv_candidate_ids %}{{ link_button("View CV", "/employer/applications/" ~ a.application_id ~ "/resume") }}{% else %}&mdash;{% endif %}</td>
             <td>
               {% for s in statuses %}{% if s != a.status %}{{ link_button(labels[s], "/employer/applications/" ~ a.application_id ~ "/status?to=" ~ s) }}{% endif %}{% endfor %}
             </td>

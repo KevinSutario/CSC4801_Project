@@ -4,7 +4,7 @@ The employer views applicants for their own job and moves an application between
 the four statuses via a confirm screen. Ownership is enforced in the service.
 """
 
-from flask import abort, flash, g, redirect, render_template, request
+from flask import abort, flash, g, redirect, render_template, request, send_file
 
 from app.db import get_db
 from app.errors import Forbidden, NotFound, ValidationError
@@ -31,9 +31,11 @@ def applicants(job_id: int):
         abort(404)
     except Forbidden:
         abort(403)
+    cv_candidate_ids = review_service.candidates_with_resume_file(conn, job_id)
     return render_template(
         "applications/applicants.html", job_id=job_id, applicants=rows,
         labels=LABELS, badge_tones=_BADGE_TONES, statuses=STATUSES,
+        cv_candidate_ids=cv_candidate_ids,
     )
 
 
@@ -81,3 +83,29 @@ def set_status(application_id: int):
         abort(400)
     flash(f"Status changed to {LABELS.get(to, to)}", "success")
     return redirect(f"/employer/jobs/{app_row['job_id']}/applicants")
+
+
+@bp.get("/employer/applications/<int:application_id>/resume")
+@role_required("employer")
+def applicant_resume(application_id: int):
+    """Stream an applicant's CV to the employer who owns the applied-to job.
+
+    Encouraged/ungraded (D23). Ownership (403) and existence (404) come from
+    review_service.resolve_applicant_resume; this does not touch the owner-only
+    direct resume route (T23).
+    """
+    conn = get_db()
+    try:
+        resume_file = review_service.resolve_applicant_resume(
+            conn, g.user["id"], application_id
+        )
+    except Forbidden:
+        abort(403)
+    except NotFound:
+        abort(404)
+    return send_file(
+        resume_file["path"],
+        mimetype=resume_file["content_type"],
+        as_attachment=False,
+        download_name=resume_file["original_name"],
+    )
