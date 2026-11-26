@@ -149,7 +149,8 @@ def test_interview_note_and_booked_candidate_are_visible_to_owners(
     applicants = f"/employer/jobs/{w['job_a']}/applicants"
     location = "Room <301>, East Wing"
     meeting_url = "https://meet.example.com/interview"
-    note = f"{location}\n{meeting_url}\njavascript:alert(1)"
+    invalid_links = ("https:///", "https://user@meet.example.com", "https://meet.example.com:bad")
+    note = "\n".join((location, meeting_url, *invalid_links, "javascript:alert(1)"))
 
     login_as(client, w["emp_a"], "employer")
     assert b'name="interview_note"' in client.get(slots).data
@@ -177,6 +178,9 @@ def test_interview_note_and_booked_candidate_are_visible_to_owners(
     assert location.encode() not in response.data
     assert f'href="{meeting_url}"'.encode() in response.data
     assert b'href="javascript:' not in response.data
+    for invalid_link in invalid_links:
+        assert invalid_link.encode() in response.data
+        assert f'href="{invalid_link}"'.encode() not in response.data
     assert b"Interview details" in client.get("/candidate/applications").data
 
     login_as(client, w["cand_b"], "candidate")

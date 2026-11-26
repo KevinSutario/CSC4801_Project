@@ -5,6 +5,9 @@ creates a slot. /employer/slots/<id>/delete deletes an unbooked slot. Both are
 employer-only; every POST form carries csrf_field().
 """
 
+import re
+from urllib.parse import urlsplit
+
 from flask import abort, flash, g, redirect, render_template, request
 
 from app import timeutil
@@ -14,6 +17,25 @@ from app.security import role_required
 
 from . import bp
 from . import slots as slots_service
+
+
+@bp.app_template_test("interview_url")
+def is_interview_url(line: str) -> bool:
+    """Check a standalone meeting URL before it becomes clickable in a note."""
+    if not line.isprintable() or "\\" in line or any(char.isspace() for char in line):
+        return False
+    try:
+        url = urlsplit(line)
+        host = url.hostname
+        if url.scheme != "https" or not host or url.username is not None:
+            return False
+        _ = url.port  # Access validates the numeric port and its range.
+        if ":" in host:  # urlsplit validates bracketed IP literals.
+            return re.fullmatch(r"\[[^\]]+\](?::[0-9]+)?", url.netloc) is not None
+        labels = host.encode("idna").decode("ascii").removesuffix(".").split(".")
+    except ValueError:
+        return False
+    return all(re.fullmatch(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", label) for label in labels)
 
 
 def zone_options() -> list[tuple[str, str]]:

@@ -4,7 +4,7 @@
       <strong>Interview note</strong><br>
       {% for raw_line in note.splitlines() %}
         {% set line = raw_line.strip() %}
-        {% if line.startswith("https://") and line|length > 8 and line.split() == [line] %}
+        {% if line is interview_url %}
           <a href="{{ line }}" rel="noreferrer">Join interview</a>
         {% else %}
           {{ line }}
