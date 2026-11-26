@@ -351,7 +351,8 @@ def book_slot(conn: Conn, candidate_id: int, application_id: int, slot_id: int) 
 `scheduling.book` POST `/candidate/applications/<int:application_id>/book/<int:slot_id>`
 Booking refusals re-render `scheduling/book.html` with the message (DEFAULT (not in brief)).
 Employers enter an optional plain-text note when creating a slot. It is visible to the slot owner
-and in the candidate's booked interview details. A standalone HTTPS URL renders as a link.
+and in the candidate's booked interview details. A standalone HTTPS URL with a valid host and no
+embedded credentials renders as a link. Other lines render as escaped text.
 The employer's applicants route supplies notes keyed by booked application ID for the owned job.
 
 ### activity — DESCOPED (D22)
