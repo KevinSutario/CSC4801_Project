@@ -178,3 +178,13 @@ An agent may not change these. If one looks wrong, stop and report.
   **T25** (P3) seeds a demo CV. Order: CC02 → T23 → {T24, T25}.
 - Reversible: the text resume and all graded behaviour are untouched; dropping T23/T24 leaves the
   brief MUSTs intact.
+
+## D24 · Interview notes and meeting links (2026-11-26, Phase 6)
+
+- CC03 adds one optional plain-text note per employer-owned slot. Its startup upgrade adds the
+  column in place so existing slots and bookings keep their IDs, times, and relationships.
+- T27 shows the candidate the note after booking and makes it available in the owning employer's
+  booking views. Standalone HTTPS URLs with a valid host and no embedded credentials render as
+  Join interview links. Other note lines render as escaped text.
+- P2 authorized merging CC03 before T27 without waiting for a non-author peer review. Both scope
+  checks passed, and the combined changes passed the release gate.
