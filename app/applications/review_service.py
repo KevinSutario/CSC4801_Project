@@ -9,6 +9,7 @@ without ever touching its booking (FP-SCHED-2).
 import sqlite3
 
 from app import audit
+from app.candidates import resume_service
 from app.db import now_iso, transaction
 from app.errors import Forbidden, NotFound, ValidationError
 from app.jobs.service import get_owned_job
@@ -118,3 +119,47 @@ def set_status(conn: sqlite3.Connection, employer_id: int, application_id: int,
         )
         audit.log_event(conn, employer_id, "application.status", "application",
                         application_id, f"{row['status']} -> {new_status}")
+
+
+def resolve_applicant_resume(conn: sqlite3.Connection, employer_id: int,
+                             application_id: int) -> dict:
+    """Return an applicant's CV file for the employer who owns the applied-to job.
+
+    Ownership is checked before existence of the file (FP-AUTH-3 / D9): a missing
+    application is NotFound; an application the employer does not own is Forbidden;
+    an owned application whose candidate has no CV file is NotFound. The returned
+    dict is the resume_files row plus an absolute 'path' under UPLOAD_DIR.
+
+    T24, encouraged/ungraded (D23). The owner-only direct resume URL (T23) is a
+    separate route and is unaffected; this never weakens it.
+    """
+    row = conn.execute(
+        "SELECT a.candidate_id, c.owner_id AS owner_id FROM applications a"
+        " JOIN jobs j ON j.id = a.job_id JOIN companies c ON c.id = j.company_id"
+        " WHERE a.id = ?",
+        (application_id,),
+    ).fetchone()
+    if row is None:
+        raise NotFound()
+    if row["owner_id"] != employer_id:
+        raise Forbidden()
+    resume_file = resume_service.resolve_resume_file(conn, row["candidate_id"])
+    if resume_file is None:
+        raise NotFound()
+    return resume_file
+
+
+def candidates_with_resume_file(conn: sqlite3.Connection, job_id: int) -> set[int]:
+    """Candidate ids among a job's applicants who have a CV file (one static query).
+
+    Used only to decide whether to show a 'View CV' link; it does not change the
+    graded list_applicants dict (D11). Scoped by job_id like the list_applicants
+    queries, so no dynamic SQL is built.
+    """
+    rows = conn.execute(
+        "SELECT rf.owner_id FROM resume_files rf"
+        " JOIN applications a ON a.candidate_id = rf.owner_id"
+        " WHERE a.job_id = ?",
+        (job_id,),
+    )
+    return {r["owner_id"] for r in rows}

@@ -6,7 +6,7 @@ READY/RUNNING — treat READY as TODO, RUNNING as DOING.)
 `scripts/check_contracts.py` reads the State column and keys off the literal **MERGED**, so keep that
 word exact and keep the table format.
 
-Current phase: **1** · Brief: **present** (docs/BRIEF.md holds the full course brief)
+Current phase: **6 (integrated on dev)** · Brief: **present** (docs/BRIEF.md holds the full course brief)
 
 > **Repo migrated 2026-11-19:** git history did not come over, so the commit SHAs, the `phase-0` tag
 > and the `../ks-CC01` worktree below are stale and will not resolve. The file outputs of the MERGED
@@ -44,6 +44,13 @@ Team split: **docs/state/DIVISION.md** — three lanes (P1 candidate+docs, P2 em
 | T20 | 4 | MERGED | - | merged into dev at fcc7450 (--no-ff); owner P2; review PASS (reviews/T20.md); Dockerfile + wsgi + first-start seed; --release gate 225 passed 0 skips. NOTE: docker build/run not run in review sandbox — run once before Phase-4 gate |
 | T21 | 4 | MERGED | - | merged into dev at 0cd0e5c (--no-ff); owner P1; review PASS (reviews/T21.md, careful); README+SPEC+INSTALL, no empty sections, all 30 cited test names verified to exist; --release gate green |
 | T22 | 5 | TODO | - | after phase 4; all three |
+| CC02 | 6 | MERGED | - | merged into dev at b9a8439; resume_files table and CV-file contracts (D23) |
+| T23 | 6 | MERGED | - | merged into dev at 0a3bc86 (--no-ff); owner P1; review PASS (reviews/T23.md, careful); gate 228 passed; CV file upload alongside text, owner-only download (403 before existence), traversal guard, 6 invalid-upload cases; reuses resume.update. Unblocks T24, T25 |
+| T24 | 6 | MERGED | - | merged into dev at bad79da; review PASS (reviews/T24.md); employer views an applicant's CV for an owned job |
+| T25 | 6 | MERGED | - | merged into dev at f4fd6c4; review PASS (reviews/T25.md); seeds a demo CV through save_resume_file |
+| T26 | 6 | MERGED | - | merged into dev at 6b70d54 (PR #17); links each employer job to its applicant list |
+| CC03 | 6 | MERGED | - | merged into dev at 5677165 (PR #19); additive SQLite upgrade for slot notes (D24) |
+| T27 | 6 | MERGED | - | merged into dev at 74cc473 (PR #18); booking notes and validated HTTPS meeting links (D24) |
 
 ## T22 self-audit (Phase 5) — result
 Four independent audits against main/dev (security, functional, performance, delivery):
@@ -72,6 +79,21 @@ demo login works. Before tagging phase-4, still recommended: a FRESH-CLONE build
 all five demo accounts (release checklist item 2). Then: merge dev->main, tag phase-4.
 Phase 5: T22 self-audit (all three).
 Phase 5: T22 self-audit (all three).
+
+## Phase 6 — CV file + employer resume view (added 2026-11-24, D23)
+New post-submission requirements: a real CV **file** input for candidates, and a place for employers
+to see submissions. Four cards, strictly ordered by the schema freeze + a service dependency:
+**CC02 (P2)** → **T23 (P1)** → { **T24 (P2)**, **T25 (P3)** }. CC02 adds the `resume_files` table +
+contracts (it is a CC card because `schema.sql`/contracts froze after Phase 1). T23 builds the
+candidate upload + owner-only download (graded FP-CAN-1: direct URL is owner-only, 403 otherwise).
+T24 adds the employer "View CV" link for its own applicants (encouraged, UNGRADED — not a valid
+audit finding); it must not regress the graded T15 fields or the T23 owner-only URL. T25 seeds a demo
+CV through the real service. Audit uses the existing `resume.update` action (frozen `audit.py`
+untouched). Cards: docs/tasks/CC02.md, T23.md, T24.md, T25.md.
+Close-out (2026-11-26): CC02, T23–T27, and CC03 are merged into `dev`. T26 adds employer applicant
+navigation. CC03 and T27 add interview notes and meeting links for bookings (D24). The integrated
+release gate passed with 233 tests and no skips.
+
 Note: the Phase-1 gate (merge dev->main, tag phase-1) should be confirmed — verify main + tag exist.
 Skeleton freeze applies from Phase 1 onward: app/__init__.py, db.py, schema.sql, security.py,
 audit.py, base.html, components/*, conftest.py — only a CCxx (P2) may touch these.

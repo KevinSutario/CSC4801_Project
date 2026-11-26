@@ -149,6 +149,32 @@ def test_candidate_cannot_post_new_job(client, make_candidate, login_as, csrf_po
     assert resp.status_code == 403
 
 
+def test_my_jobs_links_to_applicants_for_each_job(client, conn, make_employer,
+                                                  make_company, login_as):
+    """T26: each owned job card links to its own applicant list page."""
+    emp = _mk_employer_with_company(conn, make_employer, make_company)
+    jid_a = service.create_job(conn, emp, "Job A", "D", "", "full-time", "", "", "python")
+    jid_b = service.create_job(conn, emp, "Job B", "D", "", "contract", "", "", "")
+    login_as(client, emp, "employer")
+    resp = client.get("/employer/jobs")
+    assert resp.status_code == 200
+    body = resp.get_data(as_text=True)
+    assert f"/employer/jobs/{jid_a}/applicants" in body
+    assert f"/employer/jobs/{jid_b}/applicants" in body
+
+
+def test_applicants_link_destination_empty_state(client, conn, make_employer,
+                                                 make_company, login_as):
+    """T26: the linked applicants page loads for the owner and reuses the
+    existing empty state when the job has no applications."""
+    emp = _mk_employer_with_company(conn, make_employer, make_company)
+    jid = service.create_job(conn, emp, "Quiet job", "D", "", "full-time", "", "", "")
+    login_as(client, emp, "employer")
+    resp = client.get(f"/employer/jobs/{jid}/applicants")
+    assert resp.status_code == 200
+    assert "No one has applied to this job yet." in resp.get_data(as_text=True)
+
+
 def test_fp_emp_2_job_validation_and_deletion(
     conn, make_employer, make_company, make_candidate, make_application
 ):

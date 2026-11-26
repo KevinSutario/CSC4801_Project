@@ -7,7 +7,7 @@ from flask import Flask
 
 from . import errors, security
 from .config import Config
-from .db import close_db, get_db, init_db, missing_tables, user_tables
+from .db import close_db, get_db, init_db, missing_tables, upgrade_interview_slot_notes, user_tables
 
 
 def create_app(test_config: dict | None = None) -> Flask:
@@ -67,8 +67,10 @@ def create_app(test_config: dict | None = None) -> Flask:
     app.register_blueprint(applications.bp)
     app.register_blueprint(scheduling.bp)
 
-    if not os.path.exists(app.config["DATABASE"]):
-        with app.app_context():
+    with app.app_context():
+        if not os.path.exists(app.config["DATABASE"]):
             init_db()
+        else:
+            upgrade_interview_slot_notes()
 
     return app

@@ -35,6 +35,15 @@ CREATE TABLE resumes (
   updated_at  TEXT NOT NULL
 );
 
+CREATE TABLE resume_files (
+  owner_id      INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  stored_name   TEXT NOT NULL,
+  original_name TEXT NOT NULL,
+  content_type  TEXT NOT NULL,
+  size_bytes    INTEGER NOT NULL,
+  updated_at    TEXT NOT NULL
+);
+
 CREATE TABLE companies (
   id           INTEGER PRIMARY KEY,
   owner_id     INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
@@ -86,6 +95,7 @@ CREATE TABLE interview_slots (
   ends_at      TEXT NOT NULL,      -- UTC
   created_tz   TEXT NOT NULL,      -- the IANA zone the employer entered it in
   created_at   TEXT NOT NULL,
+  interview_note TEXT NOT NULL DEFAULT '',
   CHECK (ends_at > starts_at)
 );
 
