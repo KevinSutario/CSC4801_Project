@@ -73,6 +73,21 @@ def user_tables(db: sqlite3.Connection) -> list[str]:
     ]
 
 
+def upgrade_interview_slot_notes() -> None:
+    """Add notes to initialized databases without changing existing bookings."""
+    conn = get_db()
+    columns = "SELECT name FROM pragma_table_info('interview_slots')"
+    existing = {row["name"] for row in conn.execute(columns)}
+    if not existing or "interview_note" in existing or missing_tables(conn):
+        return
+    with transaction(conn, immediate=True):
+        # Another process may have applied the upgrade while we waited for the lock.
+        if "interview_note" not in {row["name"] for row in conn.execute(columns)}:
+            conn.execute(
+                "ALTER TABLE interview_slots ADD COLUMN interview_note TEXT NOT NULL DEFAULT ''"
+            )
+
+
 @contextmanager
 def transaction(conn: sqlite3.Connection, immediate: bool = False) -> Iterator[sqlite3.Connection]:
     """BEGIN (or BEGIN IMMEDIATE); COMMIT on success, ROLLBACK and re-raise on error."""
