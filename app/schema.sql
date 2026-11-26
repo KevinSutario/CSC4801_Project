@@ -95,6 +95,7 @@ CREATE TABLE interview_slots (
   ends_at      TEXT NOT NULL,      -- UTC
   created_tz   TEXT NOT NULL,      -- the IANA zone the employer entered it in
   created_at   TEXT NOT NULL,
+  interview_note TEXT NOT NULL DEFAULT '',
   CHECK (ends_at > starts_at)
 );
 

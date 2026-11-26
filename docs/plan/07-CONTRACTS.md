@@ -277,7 +277,7 @@ def list_for_candidate(conn: Conn, candidate_id: int) -> list[dict]
     # per row at least: id, job_id, job_title, company_name, status, created_at, booking
     # where booking is None or {"slot_id", "starts_at", "ends_at"}
 def get_own_application(conn: Conn, candidate_id: int, application_id: int) -> dict
-    # NotFound if missing; Forbidden if another candidate's
+    # NotFound if missing; Forbidden if another candidate's. Existing booking includes interview_note.
 ```
 `app/applications/review_service.py` (T15)
 ```python
@@ -319,13 +319,15 @@ converts back, and compares.
 `app/scheduling/slots.py` (T12)
 ```python
 def create_slot(conn: Conn, employer_id: int, date_str: str, start_str: str, end_str: str,
-                tz_name: str) -> int
+                tz_name: str, *, interview_note: str = "") -> int
     # ValidationError: bad date or time, unknown zone, DST gap, end not after start,
     # duration not exactly 30 minutes, start not in the future, overlap with the employer's own slot
     # (overlap rule is DEFAULT (not in brief))
 def delete_slot(conn: Conn, employer_id: int, slot_id: int) -> None
     # NotFound if missing; Forbidden if another employer's; Conflict if booked (409 is DEFAULT (not in brief))
-def list_slots_for_employer(conn: Conn, employer_id: int) -> list[dict]   # adds "booked": bool; start ascending
+def list_slots_for_employer(conn: Conn, employer_id: int) -> list[dict]
+    # start ascending, includes "booked": bool, interview_note, and
+    # candidate_name, job_id, and job_title (None on available slots)
 ```
 `app/scheduling/booking.py` (T16, then T17)
 ```python
@@ -348,6 +350,10 @@ def book_slot(conn: Conn, candidate_id: int, application_id: int, slot_id: int) 
 `/candidate/applications/<int:application_id>`; `scheduling.confirm_booking` GET and
 `scheduling.book` POST `/candidate/applications/<int:application_id>/book/<int:slot_id>`
 Booking refusals re-render `scheduling/book.html` with the message (DEFAULT (not in brief)).
+Employers enter an optional plain-text note when creating a slot. It is visible to the slot owner
+and in the candidate's booked interview details. A standalone HTTPS URL with a valid host and no
+embedded credentials renders as a link. Other lines render as escaped text.
+The employer's applicants route supplies notes keyed by booked application ID for the owned job.
 
 ### activity — DESCOPED (D22)
 The activity-log viewer page is cut for this submission. The `audit_log` table and

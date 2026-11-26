@@ -30,6 +30,34 @@ def test_all_tables_exist(conn):
     assert EXPECTED_TABLES <= tables
 
 
+def test_interview_note_upgrade_preserves_bookings(
+    app, conn, make_employer, make_candidate, make_job, make_application, make_slot, make_booking
+):
+    employer = make_employer()
+    slot = make_slot(employer)
+    application = make_application(make_candidate(), make_job(employer))
+    booking = make_booking(application, slot)
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(interview_slots)")}
+    if "interview_note" in columns:
+        assert conn.execute("SELECT interview_note FROM interview_slots").fetchone()[0] == ""
+        conn.execute("ALTER TABLE interview_slots DROP COLUMN interview_note")
+
+    config = {key: app.config[key] for key in ("TESTING", "SECRET_KEY", "DATABASE", "UPLOAD_DIR")}
+    create_app(config)
+    assert conn.execute(
+        "SELECT interview_note FROM interview_slots WHERE id = ?", (slot,)
+    ).fetchone()[0] == ""
+    assert tuple(conn.execute(
+        "SELECT application_id, slot_id FROM bookings WHERE id = ?", (booking,)
+    ).fetchone()) == (application, slot)
+
+    conn.execute("UPDATE interview_slots SET interview_note = ? WHERE id = ?", ("Room 301", slot))
+    create_app(config)
+    assert conn.execute(
+        "SELECT interview_note FROM interview_slots WHERE id = ?", (slot,)
+    ).fetchone()[0] == "Room 301"
+
+
 def test_foreign_keys_on(conn):
     value = conn.execute("PRAGMA foreign_keys").fetchone()[0]
     assert value == 1
