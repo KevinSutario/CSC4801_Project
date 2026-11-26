@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "components/ui.html" import badge, link_button, empty_state, card %}
+{% from "scheduling/interview_note.html" import show_interview_note %}
 {% block title %}Applicants · Keystone{% endblock %}
 {% block content %}
   <div class="page-header"><h1>Applicants</h1></div>
@@ -22,7 +23,15 @@
             <td>{% for s in a.skills %}{{ badge(s, "neutral") }}{% endfor %}</td>
             <td>{{ badge(labels[a.status], badge_tones[a.status]) }}</td>
             <td>{{ a.applied_at }}</td>
-            <td>{% if a.booking %}{{ a.booking.starts_at }} to {{ a.booking.ends_at }}{% else %}Not booked{% endif %}</td>
+            <td>
+              {% if a.booking %}
+                {{ badge("Booked", "pending") }}<br>
+                {{ a.booking.starts_at }} to {{ a.booking.ends_at }} UTC
+                {{ show_interview_note(interview_notes.get(a.application_id)) }}
+              {% else %}
+                Not booked
+              {% endif %}
+            </td>
             <td>{% if a.candidate_id in cv_candidate_ids %}{{ link_button("View CV", "/employer/applications/" ~ a.application_id ~ "/resume") }}{% else %}&mdash;{% endif %}</td>
             <td>
               {% for s in statuses %}{% if s != a.status %}{{ link_button(labels[s], "/employer/applications/" ~ a.application_id ~ "/status?to=" ~ s) }}{% endif %}{% endfor %}
@@ -32,5 +41,6 @@
       </tbody>
     </table>
   {% endif %}
-  <p>{{ link_button("Back to my jobs", "/employer/jobs") }}</p>
+  <p>{{ link_button("Back to my jobs", "/employer/jobs") }}
+     {{ link_button("Manage interview slots", "/employer/slots") }}</p>
 {% endblock %}

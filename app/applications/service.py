@@ -44,7 +44,7 @@ def get_own_application(
     row = conn.execute(
         "SELECT a.id, a.job_id, a.candidate_id, a.status, a.cover_note, a.created_at,"
         " j.title AS job_title, j.location, j.employment_type,"
-        " c.name AS company_name, b.slot_id, s.starts_at, s.ends_at"
+        " c.name AS company_name, b.slot_id, s.starts_at, s.ends_at, s.interview_note"
         " FROM applications AS a"
         " JOIN jobs AS j ON j.id = a.job_id"
         " JOIN companies AS c ON c.id = j.company_id"
@@ -61,8 +61,10 @@ def get_own_application(
     slot_id = application.pop("slot_id")
     starts_at = application.pop("starts_at")
     ends_at = application.pop("ends_at")
+    interview_note = application.pop("interview_note")
     application["booking"] = (
-        {"slot_id": slot_id, "starts_at": starts_at, "ends_at": ends_at}
+        {"slot_id": slot_id, "starts_at": starts_at, "ends_at": ends_at,
+         "interview_note": interview_note}
         if slot_id is not None else None
     )
     return application

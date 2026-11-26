@@ -1,6 +1,7 @@
 {% extends "base.html" %}
-{% from "components/forms.html" import field, select_field, csrf_field %}
+{% from "components/forms.html" import field, select_field, textarea_field, csrf_field %}
 {% from "components/ui.html" import button, badge, empty_state, card %}
+{% from "scheduling/interview_note.html" import show_interview_note %}
 {% block title %}Interview slots · Keystone{% endblock %}
 {% block content %}
   <div class="page-header"><h1>Interview slots</h1></div>
@@ -15,6 +16,8 @@
       {{ field("start", "Start (HH:MM, 24-hour)", value=form.start, error=errors.get("start"), required=True) }}
       {{ field("end", "End (HH:MM, 24-hour)", value=form.end, error=errors.get("end"), required=True) }}
       {{ select_field("timezone", "Time zone", zones, value=form.timezone, error=errors.get("timezone")) }}
+      {{ textarea_field("interview_note", "Note for the interviewee (optional)", value=form.interview_note,
+                        help="Add an address, room, or instructions. For a clickable meeting link, put the HTTPS URL on its own line. Candidates see this note after booking.") }}
       <p class="field-help">Slots are exactly 30 minutes and must start in the future.</p>
       {{ button("Add slot", kind="primary") }}
     </form>
@@ -32,9 +35,14 @@
             {{ utc_to_local(slot.ends_at, display_zone).strftime("%H:%M") }}
             ({{ display_zone }})
           </p>
-          <p class="job-actions">
+          <div class="job-actions">
             {% if slot.booked %}
               {{ badge("Booked", "pending") }}
+              {% if slot.candidate_name %}
+                <p><strong>{{ slot.candidate_name }}</strong> ·
+                  <a href="/employer/jobs/{{ slot.job_id }}/applicants">{{ slot.job_title }}</a>
+                </p>
+              {% endif %}
             {% else %}
               {{ badge("Available", "success") }}
               <form method="post" action="/employer/slots/{{ slot.id }}/delete">
@@ -42,7 +50,8 @@
                 {{ button("Delete", kind="danger") }}
               </form>
             {% endif %}
-          </p>
+          </div>
+          {{ show_interview_note(slot.interview_note) }}
         </div>
       {% endfor %}
     {% endif %}
